@@ -48,6 +48,8 @@ class ResultOverlay extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: GoogleFonts.fredoka(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -59,7 +61,7 @@ class ResultOverlay extends StatelessWidget {
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () => p.playAgain(),
+                  onPressed: () => context.read<TicTacToeProvider>().playAgain(),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFEC4899),
                     foregroundColor: Colors.white,
@@ -80,7 +82,7 @@ class ResultOverlay extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => p.exitGame(),
+                  onPressed: () => context.read<TicTacToeProvider>().exitGame(),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFBE185D),
                     side: const BorderSide(color: Color(0xFFEC4899)),
