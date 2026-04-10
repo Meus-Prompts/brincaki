@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../models/game_state.dart';
 import '../providers/game_provider.dart';
 
 class ScoreBanner extends StatelessWidget {
@@ -26,7 +27,7 @@ class ScoreBanner extends StatelessWidget {
             name: p.player1Name,
             symbol: '❌',
             score: p.score1,
-            isActive: p.currentPlayer == 1,
+            isActive: p.phase == GamePhase.playing && p.currentPlayer == 1,
           ),
           Expanded(
             child: Column(
@@ -57,7 +58,7 @@ class ScoreBanner extends StatelessWidget {
             name: p.player2Name,
             symbol: '⭕',
             score: p.score2,
-            isActive: p.currentPlayer == 2,
+            isActive: p.phase == GamePhase.playing && p.currentPlayer == 2,
             alignRight: true,
           ),
         ],

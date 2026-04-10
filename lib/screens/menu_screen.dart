@@ -101,7 +101,11 @@ class MenuScreen extends StatelessWidget {
               useMaterial3: true,
               textTheme: GoogleFonts.fredokaTextTheme(),
             ),
-            child: const TicTacToeScreen(),
+            child: Navigator(
+            onGenerateRoute: (_) => MaterialPageRoute(
+              builder: (_) => const TicTacToeScreen(),
+            ),
+          ),
           ),
         ),
       ),
