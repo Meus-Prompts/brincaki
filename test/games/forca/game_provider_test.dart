@@ -65,8 +65,15 @@ void main() {
     });
 
     test('derrota reseta para nível 1', () {
+      // Win the level 1 word to advance to level 2
+      for (final letter in provider.currentWord.split('').toSet()) {
+        provider.guessLetter(letter);
+      }
+      expect(provider.phase, ForcaPhase.won);
       provider.nextWord(); // vai para nível 2
       expect(provider.level, 2);
+
+      // Now lose at level 2
       final wrongLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
           .split('')
           .where((l) => !provider.currentWord.contains(l))
@@ -75,6 +82,7 @@ void main() {
       for (final l in wrongLetters) {
         provider.guessLetter(l);
       }
+      expect(provider.phase, ForcaPhase.lost);
       provider.retry(); // reseta
       expect(provider.level, 1);
     });

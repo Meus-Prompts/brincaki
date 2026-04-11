@@ -14,6 +14,7 @@ class ForcaProvider extends ChangeNotifier {
   final Map<String, LetterState> _letterStates = {};
   final Set<String> _usedWords = {};
   ForcaPhase _phase = ForcaPhase.playing;
+  final Random _random = Random();
 
   ForcaProvider() {
     _pickWord();
@@ -34,6 +35,7 @@ class ForcaProvider extends ChangeNotifier {
       .join(' ');
 
   void guessLetter(String letter) {
+    assert(letter.length == 1, 'guessLetter expects a single character');
     if (_phase != ForcaPhase.playing) return;
     if (_letterStates.containsKey(letter)) return;
 
@@ -53,6 +55,7 @@ class ForcaProvider extends ChangeNotifier {
 
   /// Avança para a próxima palavra (chamado após vitória).
   void nextWord() {
+    if (_phase != ForcaPhase.won) return;
     if (_level < _maxLevel) _level++;
     _letterStates.clear();
     _phase = ForcaPhase.playing;
@@ -62,6 +65,7 @@ class ForcaProvider extends ChangeNotifier {
 
   /// Reseta para o nível 1 (chamado após derrota).
   void retry() {
+    if (_phase != ForcaPhase.lost) return;
     _level = 1;
     _letterStates.clear();
     _usedWords.clear();
@@ -76,7 +80,7 @@ class ForcaProvider extends ChangeNotifier {
     // Se esgotou as palavras do nível, reseta as usadas
     final pool = available.isEmpty ? words : available;
     if (available.isEmpty) _usedWords.removeWhere((w) => words.contains(w));
-    _currentWord = pool[Random().nextInt(pool.length)];
+    _currentWord = pool[_random.nextInt(pool.length)];
     _usedWords.add(_currentWord);
   }
 
