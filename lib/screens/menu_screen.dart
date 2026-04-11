@@ -9,6 +9,8 @@ import '../games/2048/screens/game_screen.dart';
 import '../games/2048/providers/game_provider.dart';
 import '../games/tictactoe/screens/game_screen.dart';
 import '../games/tictactoe/providers/game_provider.dart';
+import '../games/forca/screens/game_screen.dart';
+import '../games/forca/providers/game_provider.dart' as forca;
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
@@ -112,6 +114,29 @@ class MenuScreen extends StatelessWidget {
     );
   }
 
+  void _openForca(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChangeNotifierProvider(
+          create: (_) => forca.ForcaProvider(),
+          child: Theme(
+            data: ThemeData(
+              colorSchemeSeed: const Color(0xFF3B82F6),
+              useMaterial3: true,
+              textTheme: GoogleFonts.fredokaTextTheme(),
+            ),
+            child: Navigator(
+              onGenerateRoute: (_) => MaterialPageRoute(
+                builder: (_) => const ForcaScreen(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -168,6 +193,16 @@ class MenuScreen extends StatelessWidget {
                 gradientColors: const [Color(0xFFEC4899), Color(0xFFF472B6)],
                 shadowColor: const Color(0xFFEC4899),
                 onTap: () => _openTicTacToe(context),
+              ),
+              const SizedBox(height: 16),
+              _buildGameCard(
+                emoji: '🪢',
+                title: 'Jogo da Forca',
+                description: 'Adivinhe a palavra letra por letra!',
+                tags: const ['7 níveis', 'Vocabulário'],
+                gradientColors: const [Color(0xFF3B82F6), Color(0xFF60A5FA)],
+                shadowColor: const Color(0xFF3B82F6),
+                onTap: () => _openForca(context),
               ),
               const SizedBox(height: 32),
               _buildFooter(),
