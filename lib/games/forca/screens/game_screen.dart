@@ -24,7 +24,7 @@ class ForcaScreen extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Consumer<ForcaProvider>(
-          builder: (_, p, __) => Text(
+          builder: (_, p, _) => Text(
             'Jogo da Forca  •  Nível ${p.level}',
             style: GoogleFonts.fredoka(
               fontSize: 20,
@@ -189,7 +189,9 @@ class _ResultOverlay extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    won ? 'Próxima Palavra →' : 'Tentar Novamente',
+                    won
+                        ? (p.level < 7 ? 'Próxima Palavra →' : 'Jogar Novamente')
+                        : 'Tentar Novamente',
                     style: GoogleFonts.fredoka(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
