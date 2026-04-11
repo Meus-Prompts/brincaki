@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'dart:math' show pi;
 
 /// Widget que exibe a forca e o boneco.
 /// [wrongCount] de 0 a 6 controla quantas partes são desenhadas.
-/// [animationValue] de 0.0 a 1.0 anima a parte mais recente.
+/// Cada nova parte é animada suavemente quando [wrongCount] aumenta.
 class HangmanWidget extends StatefulWidget {
   final int wrongCount;
 
@@ -54,7 +55,7 @@ class _HangmanWidgetState extends State<HangmanWidget>
       builder: (context, child) => CustomPaint(
         size: const Size(200, 220),
         painter: _HangmanPainter(
-          wrongCount: widget.wrongCount,
+          wrongCount: widget.wrongCount.clamp(0, 6),
           newPartProgress: _animation.value,
           prevWrongCount: _prevWrongCount,
         ),
@@ -134,13 +135,13 @@ class _HangmanPainter extends CustomPainter {
     // 1: Cabeça
     final headP = progressFor(0);
     if (headP > 0) {
-      final sweepAngle = 2 * 3.14159 * headP;
+      final sweepAngle = 2 * pi * headP;
       canvas.drawArc(
         Rect.fromCircle(
           center: const Offset(cx, headTop + headRadius),
           radius: headRadius,
         ),
-        -3.14159 / 2,
+        -pi / 2,
         sweepAngle,
         false,
         bodyPaint,
