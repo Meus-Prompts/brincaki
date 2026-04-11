@@ -51,7 +51,7 @@ class _HangmanWidgetState extends State<HangmanWidget>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _animation,
-      builder: (_, __) => CustomPaint(
+      builder: (context, child) => CustomPaint(
         size: const Size(200, 220),
         painter: _HangmanPainter(
           wrongCount: widget.wrongCount,
