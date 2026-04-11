@@ -1,3 +1,5 @@
+// lib/games/forca/data/word_list.dart
+
 const Map<int, List<String>> kWordsByLevel = {
   1: [
     'UVA', 'BOI', 'CEU', 'PAO', 'MAR', 'SOL', 'RIO', 'MEL',
@@ -24,9 +26,9 @@ const Map<int, List<String>> kWordsByLevel = {
   ],
   6: [
     'JACARANDA', 'RINOCERONTE', 'ORANGOTANGO', 'CHIMPANZE',
-    'SALAMANDRA', 'ALBATROZE', 'PIRANHA', 'ANACONDA',
+    'SALAMANDRA', 'CARANGUEJO', 'PIRANHA', 'ANACONDA',
     'MARIPOSA', 'ESCARAVELHA', 'CAPIVARA', 'TAMANDUA',
-    'MORCEGO', 'PORCOESPINHO', 'ONCAPINTADA',
+    'MORCEGO', 'PINTASSILGO', 'SARIGUEIA',
   ],
   7: [
     'HIPOPOTAMO', 'DINOSSAURO', 'ALBATROZ',
