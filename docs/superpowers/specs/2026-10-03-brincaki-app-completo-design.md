@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-03
 **Project:** Brincaki
-**Status:** Aguardando revisão
+**Status:** Aprovada
 
 ---
 
@@ -295,12 +295,13 @@ class LevelConfig {
   - renderiza o menu com os 5 cards;
   - toca em cada card, confere que a tela do jogo abriu e volta ao menu.
 - Nos testes de widget, o Google Fonts precisa evitar requisições de rede: `GoogleFonts.config.allowRuntimeFetching = false`, mais o que for necessário para não falhar sem a fonte.
-- Execução manual em `flutter run -d linux`, passando por cada jogo e tirando capturas de tela:
+- Execução manual no Chrome (`flutter run -d web-server`), passando por cada jogo e tirando capturas de tela. Esta máquina não tem toolchain Linux, só web:
   - abrir, jogar, vencer ou perder;
   - voltar pela seta e pelo "voltar".
 
 ## 7. Entrega
 
+- Pré-requisito: o SDK do Android, que hoje não está instalado nesta máquina. Instalar só depois de confirmar com o usuário.
 - `flutter build apk --release` gera `build/app/outputs/flutter-apk/app-release.apk`, assinado com a chave de debug, o que basta para instalar sem loja.
 - O ícone do app é o padrão do Flutter. Um ícone personalizado fica fora deste escopo.
 
