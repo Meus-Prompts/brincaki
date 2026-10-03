@@ -34,8 +34,9 @@ void usePhoneSize(WidgetTester tester) {
 }
 
 void main() {
-  testWidgets('arrastar sobre cada palavra marca todas e mostra a vitória',
-      (tester) async {
+  testWidgets('arrastar sobre cada palavra marca todas e mostra a vitória', (
+    tester,
+  ) async {
     usePhoneSize(tester);
     await tester.pumpWidget(MaterialApp(home: HomeScreen(random: Random(11))));
     await tester.pumpAndSettle();
@@ -43,12 +44,17 @@ void main() {
     expect(find.textContaining('Nível 1'), findsOneWidget);
 
     final gridFinder = find.byType(LetterGrid);
-    final provider =
-        Provider.of<WordSearchProvider>(tester.element(gridFinder), listen: false);
+    final provider = Provider.of<WordSearchProvider>(
+      tester.element(gridFinder),
+      listen: false,
+    );
     final rect = tester.getRect(gridFinder);
     final size = provider.config.size;
-    expect(provider.words.map((w) => w.direction), contains(Direction.down),
-        reason: 'a seed precisa ter uma palavra vertical');
+    expect(
+      provider.words.map((w) => w.direction),
+      contains(Direction.down),
+      reason: 'a seed precisa ter uma palavra vertical',
+    );
 
     for (final w in provider.words) {
       await drag(
@@ -73,8 +79,10 @@ void main() {
     await tester.pumpAndSettle();
 
     final gridFinder = find.byType(LetterGrid);
-    final provider =
-        Provider.of<WordSearchProvider>(tester.element(gridFinder), listen: false);
+    final provider = Provider.of<WordSearchProvider>(
+      tester.element(gridFinder),
+      listen: false,
+    );
     final rect = tester.getRect(gridFinder);
 
     final gesture = await tester.startGesture(cellCenter(rect, 6, (0, 0)));

@@ -20,8 +20,11 @@ void main() {
       test('nível ${i + 1}: palavras válidas e reserva suficiente', () {
         final level = kLevels[i];
         expect(level.words.length, greaterThanOrEqualTo(level.wordCount + 5));
-        expect(level.words.toSet().length, level.words.length,
-            reason: 'palavra repetida no tema ${level.theme}');
+        expect(
+          level.words.toSet().length,
+          level.words.length,
+          reason: 'palavra repetida no tema ${level.theme}',
+        );
         for (final w in level.words) {
           expect(w, matches(_word), reason: w);
           expect(w.length, inInclusiveRange(3, level.size), reason: w);
@@ -31,6 +34,28 @@ void main() {
   });
 
   group('generateGrid', () {
+    for (var i = 0; i < 10; i++) {
+      test('nível ${i + 1}: cada palavra aparece uma única vez na grade', () {
+        final level = kLevels[i];
+        for (var seed = 0; seed < 100; seed++) {
+          final g = generateGrid(
+            candidates: level.words,
+            wordCount: level.wordCount,
+            size: level.size,
+            directions: level.directions,
+            random: Random(seed),
+          );
+          for (final w in g.words) {
+            expect(
+              _occurrences(g.letters, w.word),
+              1,
+              reason: 'seed $seed: ${w.word} aparece mais de uma vez',
+            );
+          }
+        }
+      });
+    }
+
     test('palavras parecidas não compartilham mais de uma célula', () {
       for (var seed = 0; seed < 30; seed++) {
         final g = generateGrid(
@@ -43,11 +68,14 @@ void main() {
         );
         for (var a = 0; a < g.words.length; a++) {
           for (var b = a + 1; b < g.words.length; b++) {
-            final shared = g.words[a].cells
-                .toSet()
-                .intersection(g.words[b].cells.toSet());
-            expect(shared.length, lessThanOrEqualTo(1),
-                reason: 'seed $seed: ${g.words[a].word} x ${g.words[b].word}');
+            final shared = g.words[a].cells.toSet().intersection(
+              g.words[b].cells.toSet(),
+            );
+            expect(
+              shared.length,
+              lessThanOrEqualTo(1),
+              reason: 'seed $seed: ${g.words[a].word} x ${g.words[b].word}',
+            );
           }
         }
       }
@@ -89,15 +117,49 @@ void main() {
 
           for (var a = 0; a < g.words.length; a++) {
             for (var b = a + 1; b < g.words.length; b++) {
-              final shared = g.words[a].cells
-                  .toSet()
-                  .intersection(g.words[b].cells.toSet());
-              expect(shared.length, lessThanOrEqualTo(1),
-                  reason: '${g.words[a].word} x ${g.words[b].word}');
+              final shared = g.words[a].cells.toSet().intersection(
+                g.words[b].cells.toSet(),
+              );
+              expect(
+                shared.length,
+                lessThanOrEqualTo(1),
+                reason: '${g.words[a].word} x ${g.words[b].word}',
+              );
             }
           }
         }
       });
     }
   });
+}
+
+/// Quantos trechos retos da grade (em qualquer das 8 direções) formam [word].
+/// Um palíndromo lido nos dois sentidos conta uma vez só.
+int _occurrences(List<List<String>> letters, String word) {
+  final size = letters.length;
+  final found = <String>{};
+  for (final d in Direction.values) {
+    for (var r = 0; r < size; r++) {
+      for (var c = 0; c < size; c++) {
+        final cells = [
+          for (var k = 0; k < word.length; k++) (r + d.dr * k, c + d.dc * k),
+        ];
+        if (cells.any(
+          (p) => p.$1 < 0 || p.$1 >= size || p.$2 < 0 || p.$2 >= size,
+        )) {
+          continue;
+        }
+        if (cells.map((p) => letters[p.$1][p.$2]).join() != word) continue;
+        final key =
+            (cells.toList()..sort(
+                  (a, b) => a.$1 != b.$1
+                      ? a.$1.compareTo(b.$1)
+                      : a.$2.compareTo(b.$2),
+                ))
+                .join();
+        found.add(key);
+      }
+    }
+  }
+  return found.length;
 }

@@ -54,11 +54,52 @@ GeneratedGrid? _tryGenerate(
     if (placement != null) placed.add(placement);
   }
 
-  final letters = [
-    for (final row in grid)
-      [for (final l in row) l ?? String.fromCharCode(65 + random.nextInt(26))],
-  ];
-  return GeneratedGrid(letters: letters, words: placed);
+  // O preenchimento aleatório pode formar uma segunda cópia de uma palavra,
+  // que a criança veria mas o jogo não aceitaria. Sorteia de novo nesse caso.
+  for (var fill = 0; fill < 20; fill++) {
+    final letters = [
+      for (final row in grid)
+        [
+          for (final l in row)
+            l ?? String.fromCharCode(65 + random.nextInt(26)),
+        ],
+    ];
+    if (placed.every((w) => _occurrences(letters, w.word) == 1)) {
+      return GeneratedGrid(letters: letters, words: placed);
+    }
+  }
+  return null;
+}
+
+/// Quantos trechos retos distintos da grade formam [word], em qualquer das 8
+/// direções (um palíndromo lido nos dois sentidos conta uma vez).
+int _occurrences(List<List<String>> letters, String word) {
+  final size = letters.length;
+  final found = <String>{};
+  for (final d in Direction.values) {
+    for (var r = 0; r < size; r++) {
+      for (var c = 0; c < size; c++) {
+        final endRow = r + d.dr * (word.length - 1);
+        final endCol = c + d.dc * (word.length - 1);
+        if (endRow < 0 || endRow >= size || endCol < 0 || endCol >= size) {
+          continue;
+        }
+        var matches = true;
+        for (var k = 0; k < word.length; k++) {
+          if (letters[r + d.dr * k][c + d.dc * k] != word[k]) {
+            matches = false;
+            break;
+          }
+        }
+        if (!matches) continue;
+        // Mesma reta nos dois sentidos: identifica pelas pontas ordenadas.
+        final ends = [(r, c), (endRow, endCol)]
+          ..sort((a, b) => a.$1 != b.$1 ? a.$1 - b.$1 : a.$2 - b.$2);
+        found.add('${ends.first}-${ends.last}');
+      }
+    }
+  }
+  return found.length;
 }
 
 PlacedWord? _place(
@@ -80,7 +121,8 @@ PlacedWord? _place(
     if (endRow < 0 || endRow >= size || endCol < 0 || endCol >= size) continue;
 
     final cells = [
-      for (var k = 0; k < word.length; k++) (row + dir.dr * k, col + dir.dc * k),
+      for (var k = 0; k < word.length; k++)
+        (row + dir.dr * k, col + dir.dc * k),
     ];
 
     var overlaps = 0;

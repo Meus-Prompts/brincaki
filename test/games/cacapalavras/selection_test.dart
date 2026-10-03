@@ -19,7 +19,13 @@ void main() {
       // (2,3) está a ~34° da horizontal → diagonal ↘, comprimento 3.
       expect(snapLine((0, 0), (2, 3), 6), [(0, 0), (1, 1), (2, 2), (3, 3)]);
       // (1,4) está a ~14° → horizontal.
-      expect(snapLine((0, 0), (1, 4), 6), [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)]);
+      expect(snapLine((0, 0), (1, 4), 6), [
+        (0, 0),
+        (0, 1),
+        (0, 2),
+        (0, 3),
+        (0, 4),
+      ]);
     });
 
     test('para na borda da grade', () {

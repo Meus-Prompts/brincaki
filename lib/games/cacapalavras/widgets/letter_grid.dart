@@ -46,9 +46,9 @@ class LetterGrid extends StatelessWidget {
           final cellSize = constraints.maxWidth / size;
 
           (int, int) toCell(Offset position) => (
-                (position.dy / cellSize).floor().clamp(0, size - 1),
-                (position.dx / cellSize).floor().clamp(0, size - 1),
-              );
+            (position.dy / cellSize).floor().clamp(0, size - 1),
+            (position.dx / cellSize).floor().clamp(0, size - 1),
+          );
 
           return GestureDetector(
             // Começa a seleção onde o dedo encostou, não onde o arrasto foi
