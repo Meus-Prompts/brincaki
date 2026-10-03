@@ -11,128 +11,109 @@ import '../games/tictactoe/screens/game_screen.dart';
 import '../games/tictactoe/providers/game_provider.dart';
 import '../games/forca/screens/game_screen.dart';
 import '../games/forca/providers/game_provider.dart' as forca;
+import '../widgets/game_shell.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
 
+  void _openGame(BuildContext context, GameShell shell) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => shell));
+  }
+
   void _openCacaPalavras(BuildContext context) {
-    Navigator.push(
+    _openGame(
       context,
-      MaterialPageRoute(
-        builder: (_) => Theme(
-          data: ThemeData(
-            colorSchemeSeed: Colors.deepPurple,
-            useMaterial3: true,
-            textTheme: GoogleFonts.fredokaTextTheme(),
-          ),
-          child: const cacapalavras.HomeScreen(),
+      GameShell(
+        theme: ThemeData(
+          colorSchemeSeed: Colors.deepPurple,
+          useMaterial3: true,
+          textTheme: GoogleFonts.fredokaTextTheme(),
         ),
+        home: (_) => const cacapalavras.HomeScreen(),
       ),
     );
   }
 
   void _openSudoku(BuildContext context) {
-    Navigator.push(
+    _openGame(
       context,
-      MaterialPageRoute(
-        builder: (_) => ChangeNotifierProvider(
-          create: (_) => GameProvider(),
-          child: Theme(
-            data: ThemeData(
-              brightness: Brightness.dark,
-              scaffoldBackgroundColor: const Color(0xFF121212),
-              colorScheme: const ColorScheme.dark(
-                primary: Color(0xFFBB86FC),
-                surface: Color(0xFF1E1E1E),
-                error: Color(0xFFCF6679),
-              ),
-              appBarTheme: const AppBarTheme(
-                backgroundColor: Color(0xFF1E1E1E),
-                elevation: 0,
-              ),
-              elevatedButtonTheme: ElevatedButtonThemeData(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFBB86FC),
-                  foregroundColor: Colors.black,
-                ),
-              ),
-            ),
-            child: Navigator(
-              onGenerateRoute: (_) => MaterialPageRoute(
-                builder: (_) => const sudoku.HomeScreen(),
-              ),
+      GameShell(
+        wrapProvider: (child) =>
+            ChangeNotifierProvider(create: (_) => GameProvider(), child: child),
+        theme: ThemeData(
+          brightness: Brightness.dark,
+          scaffoldBackgroundColor: const Color(0xFF121212),
+          colorScheme: const ColorScheme.dark(
+            primary: Color(0xFFBB86FC),
+            surface: Color(0xFF1E1E1E),
+            error: Color(0xFFCF6679),
+          ),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFF1E1E1E),
+            elevation: 0,
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFBB86FC),
+              foregroundColor: Colors.black,
             ),
           ),
         ),
+        home: (_) => const sudoku.HomeScreen(),
       ),
     );
   }
 
   void _openGame2048(BuildContext context) {
-    Navigator.push(
+    _openGame(
       context,
-      MaterialPageRoute(
-        builder: (_) => ChangeNotifierProvider(
+      GameShell(
+        wrapProvider: (child) => ChangeNotifierProvider(
           create: (_) => Game2048Provider(),
-          child: Theme(
-            data: ThemeData(
-              colorSchemeSeed: const Color(0xFFF97316),
-              useMaterial3: true,
-              scaffoldBackgroundColor: const Color(0xFFFAF8EF),
-            ),
-            child: Navigator(
-              onGenerateRoute: (_) => MaterialPageRoute(
-                builder: (_) => const Game2048Screen(),
-              ),
-            ),
-          ),
+          child: child,
         ),
+        theme: ThemeData(
+          colorSchemeSeed: const Color(0xFFF97316),
+          useMaterial3: true,
+          scaffoldBackgroundColor: const Color(0xFFFAF8EF),
+        ),
+        home: (_) => const Game2048Screen(),
       ),
     );
   }
 
   void _openTicTacToe(BuildContext context) {
-    Navigator.push(
+    _openGame(
       context,
-      MaterialPageRoute(
-        builder: (_) => ChangeNotifierProvider(
+      GameShell(
+        wrapProvider: (child) => ChangeNotifierProvider(
           create: (_) => TicTacToeProvider(),
-          child: Theme(
-            data: ThemeData(
-              colorSchemeSeed: const Color(0xFFEC4899),
-              useMaterial3: true,
-              textTheme: GoogleFonts.fredokaTextTheme(),
-            ),
-            child: Navigator(
-            onGenerateRoute: (_) => MaterialPageRoute(
-              builder: (_) => const TicTacToeScreen(),
-            ),
-          ),
-          ),
+          child: child,
         ),
+        theme: ThemeData(
+          colorSchemeSeed: const Color(0xFFEC4899),
+          useMaterial3: true,
+          textTheme: GoogleFonts.fredokaTextTheme(),
+        ),
+        home: (_) => const TicTacToeScreen(),
       ),
     );
   }
 
   void _openForca(BuildContext context) {
-    Navigator.push(
+    _openGame(
       context,
-      MaterialPageRoute(
-        builder: (_) => ChangeNotifierProvider(
+      GameShell(
+        wrapProvider: (child) => ChangeNotifierProvider(
           create: (_) => forca.ForcaProvider(),
-          child: Theme(
-            data: ThemeData(
-              colorSchemeSeed: const Color(0xFF3B82F6),
-              useMaterial3: true,
-              textTheme: GoogleFonts.fredokaTextTheme(),
-            ),
-            child: Navigator(
-              onGenerateRoute: (_) => MaterialPageRoute(
-                builder: (_) => const ForcaScreen(),
-              ),
-            ),
-          ),
+          child: child,
         ),
+        theme: ThemeData(
+          colorSchemeSeed: const Color(0xFF3B82F6),
+          useMaterial3: true,
+          textTheme: GoogleFonts.fredokaTextTheme(),
+        ),
+        home: (_) => const ForcaScreen(),
       ),
     );
   }

@@ -21,7 +21,8 @@ class ForcaScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF1D4ED8)),
-          onPressed: () => Navigator.of(context).pop(),
+          tooltip: 'Voltar ao menu',
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
         ),
         title: Consumer<ForcaProvider>(
           builder: (_, p, _) => Text(

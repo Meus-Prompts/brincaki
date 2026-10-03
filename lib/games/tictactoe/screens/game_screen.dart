@@ -24,7 +24,8 @@ class TicTacToeScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFFBE185D)),
-          onPressed: () => Navigator.of(context).pop(),
+          tooltip: 'Voltar ao menu',
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
         ),
         title: Text(
           'Jogo da Velha',
