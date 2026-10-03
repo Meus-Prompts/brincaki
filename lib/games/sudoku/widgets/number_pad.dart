@@ -46,12 +46,13 @@ class NumberPad extends StatelessWidget {
                         children: [
                           Text(
                             number.toString(),
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, height: 1.0),
                           ),
                           Text(
                             remaining.toString(),
                             style: TextStyle(
                               fontSize: 11,
+                              height: 1.0,
                               color: isSelected
                                   ? Colors.black54
                                   : Colors.white54,
