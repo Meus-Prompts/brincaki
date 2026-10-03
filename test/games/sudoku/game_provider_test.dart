@@ -73,6 +73,54 @@ void main() {
       expect(provider.board!.getCell(row, col).isError, isFalse);
     });
 
+    test('corrigir a casa que causava o conflito tira o vermelho da outra', () {
+      provider.startGame(Difficulty.easy);
+      // Duas casas vazias na mesma linha.
+      late int row, colA, colB;
+      search:
+      for (var r = 0; r < 9; r++) {
+        final empty = [
+          for (var c = 0; c < 9; c++)
+            if (provider.board!.getCell(r, c).isEmpty) c,
+        ];
+        if (empty.length >= 2) {
+          (row, colA, colB) = (r, empty[0], empty[1]);
+          break search;
+        }
+      }
+      final rightForA = provider.board!.getHint(row, colA);
+      final rightForB = provider.board!.getHint(row, colB);
+
+      // Erro em A: coloca ali o número que é de B; depois B recebe o certo.
+      provider.selectCell(row, colA);
+      provider.enterNumber(rightForB);
+      provider.selectCell(row, colB);
+      provider.enterNumber(rightForB);
+      expect(provider.board!.getCell(row, colB).isError, isTrue);
+
+      // A é corrigida: B não conflita com mais nada.
+      provider.selectCell(row, colA);
+      provider.enterNumber(rightForA);
+      expect(provider.board!.getCell(row, colA).isError, isFalse);
+      expect(provider.board!.getCell(row, colB).isError, isFalse);
+    });
+
+    test('apagar uma casa vermelha tira o vermelho', () {
+      provider.startGame(Difficulty.easy);
+      final (row, col) = firstEmptyCell();
+      final fixedInRow = List.generate(9, (c) => provider.board!.getCell(row, c))
+          .firstWhere((cell) => cell.isFixed)
+          .value;
+      provider.selectCell(row, col);
+      provider.enterNumber(fixedInRow);
+      expect(provider.board!.getCell(row, col).isError, isTrue);
+
+      provider.selectCell(row, col);
+      provider.clearCell();
+      expect(provider.board!.getCell(row, col).isEmpty, isTrue);
+      expect(provider.board!.getCell(row, col).isError, isFalse);
+    });
+
     test('dicas acabam depois de 3 usos', () {
       provider.startGame(Difficulty.easy);
       for (var i = 0; i < 4; i++) {

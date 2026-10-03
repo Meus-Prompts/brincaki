@@ -17,10 +17,11 @@ class SudokuBoard {
 
     if (cell.isFixed) return this;
 
-    final isError = value != 0 && !isValidMove(row, col, value);
-    newCells[row][col] = cell.copyWith(value: value, isError: isError);
+    newCells[row][col] = cell.copyWith(value: value, isError: false);
 
-    return SudokuBoard(cells: newCells, solution: solution);
+    // Mudar uma casa pode criar ou desfazer conflitos em outras da mesma
+    // linha, coluna ou bloco: reavalia todas.
+    return SudokuBoard(cells: newCells, solution: solution).revalidateAll();
   }
 
   bool isValidMove(int row, int col, int value) {
