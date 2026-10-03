@@ -97,10 +97,28 @@ class _Header extends StatelessWidget {
     final p = context.watch<Game2048Provider>();
     return Row(
       children: [
-        ScoreBox(label: 'Pontos', value: p.score),
+        // As caixas encolhem (em vez de empurrar o botão para fora) em telas
+        // estreitas, com fonte grande ou com recordes de muitos dígitos.
+        Expanded(
+          child: Row(
+            children: [
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: ScoreBox(label: 'Pontos', value: p.score),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: ScoreBox(label: 'Recorde', value: p.best),
+                ),
+              ),
+            ],
+          ),
+        ),
         const SizedBox(width: 8),
-        ScoreBox(label: 'Recorde', value: p.best),
-        const Spacer(),
         ElevatedButton(
           onPressed: p.newGame,
           style: _buttonStyle(),
