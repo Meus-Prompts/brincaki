@@ -7,8 +7,16 @@ import '../logic/board_logic.dart';
 import '../providers/game_provider.dart';
 import 'tile_widget.dart';
 
-class BoardWidget extends StatelessWidget {
+class BoardWidget extends StatefulWidget {
   const BoardWidget({super.key});
+
+  @override
+  State<BoardWidget> createState() => _BoardWidgetState();
+}
+
+class _BoardWidgetState extends State<BoardWidget> {
+  /// Distância total do arrasto atual.
+  Offset _dragged = Offset.zero;
 
   @override
   Widget build(BuildContext context) {
@@ -16,8 +24,13 @@ class BoardWidget extends StatelessWidget {
 
     return GestureDetector(
       key: const Key('board2048'),
+      onPanStart: (_) => _dragged = Offset.zero,
+      onPanUpdate: (details) => _dragged += details.delta,
       onPanEnd: (details) {
-        final direction = directionFromVelocity(details.velocity.pixelsPerSecond);
+        // Swipe rápido pela velocidade; arrasto lento pela distância.
+        final direction =
+            directionFromVelocity(details.velocity.pixelsPerSecond) ??
+                directionFromDistance(_dragged);
         if (direction != null) p.move(direction);
       },
       child: Container(

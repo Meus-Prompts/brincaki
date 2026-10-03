@@ -94,3 +94,13 @@ Direction? directionFromVelocity(Offset velocity) {
   }
   return velocity.dy > 0 ? Direction.down : Direction.up;
 }
+
+/// Direção pela distância total arrastada, ou `null` se for curta demais.
+/// Cobre o arrasto lento, em que o dedo para antes de soltar.
+Direction? directionFromDistance(Offset distance) {
+  if (distance.distance < 24) return null;
+  if (distance.dx.abs() > distance.dy.abs()) {
+    return distance.dx > 0 ? Direction.right : Direction.left;
+  }
+  return distance.dy > 0 ? Direction.down : Direction.up;
+}

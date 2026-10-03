@@ -100,6 +100,30 @@ void main() {
     expect(button.right, lessThanOrEqualTo(320));
   });
 
+  testWidgets('arrasto lento, parando antes de soltar, também move',
+      (tester) async {
+    await pumpScreen(tester);
+    provider.debugSetBoard([
+      [0, 0, 0, 2],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+    ]);
+    await tester.pump();
+
+    final center = tester.getCenter(find.byKey(const Key('board2048')));
+    final gesture = await tester.startGesture(center);
+    for (var i = 0; i < 10; i++) {
+      await gesture.moveBy(const Offset(-15, 0));
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await tester.pump(const Duration(milliseconds: 500)); // dedo parado
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    expect(provider.board[0][0], 2);
+  });
+
   testWidgets('overlay de vitória com Continuar', (tester) async {
     await pumpScreen(tester);
     provider.debugSetBoard([

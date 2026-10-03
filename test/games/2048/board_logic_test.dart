@@ -132,4 +132,15 @@ void main() {
       expect(directionFromVelocity(const Offset(50, 40)), isNull);
     });
   });
+
+  group('directionFromDistance', () {
+    test('arrasto longo define a direção pelo eixo dominante', () {
+      expect(directionFromDistance(const Offset(-80, 10)), Direction.left);
+      expect(directionFromDistance(const Offset(5, 60)), Direction.down);
+    });
+
+    test('toque ou arrasto curto não conta', () {
+      expect(directionFromDistance(const Offset(10, 8)), isNull);
+    });
+  });
 }
