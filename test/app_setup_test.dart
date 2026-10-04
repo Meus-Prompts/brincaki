@@ -1,5 +1,6 @@
 // test/app_setup_test.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -35,5 +36,25 @@ void main() {
     final orientation = calls
         .singleWhere((c) => c.method == 'SystemChrome.setPreferredOrientations');
     expect(orientation.arguments, ['DeviceOrientation.portraitUp']);
+  });
+
+  test('a licença das palavras do Termo aparece na tela de licenças',
+      () async {
+    final calls = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      calls.add(call);
+      return null;
+    });
+    addTearDown(() => TestDefaultBinaryMessengerBinding
+        .instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, null));
+
+    await configureApp();
+    final licenses = await LicenseRegistry.licenses.toList();
+    expect(
+      licenses.any((l) => l.packages.contains('fserb/pt-br')),
+      isTrue,
+    );
   });
 }

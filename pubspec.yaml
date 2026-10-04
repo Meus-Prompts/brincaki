@@ -63,6 +63,7 @@ flutter:
   # Fredoka empacotada: o app não baixa fontes da internet.
   assets:
     - assets/google_fonts/
+    - assets/termo/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

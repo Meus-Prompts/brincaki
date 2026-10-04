@@ -20,6 +20,11 @@ Future<void> configureApp() async {
     final license = await rootBundle.loadString('assets/google_fonts/OFL.txt');
     yield LicenseEntryWithLineBreaks(['google_fonts'], license);
   });
+  LicenseRegistry.addLicense(() async* {
+    final license =
+        await rootBundle.loadString('assets/termo/LICENSE-fserb-pt-br.txt');
+    yield LicenseEntryWithLineBreaks(['fserb/pt-br'], license);
+  });
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 }
 
