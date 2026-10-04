@@ -37,6 +37,27 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('buracos e peças aparecem com tamanho de verdade', (tester) async {
+    await pumpScreen(tester);
+    await tester.tap(find.text('Dois jogadores'));
+    await tester.pump();
+    await tester.tap(find.text('Jogar!'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('col-0')));
+    await tester.pumpAndSettle();
+
+    final cells = find.descendant(
+      of: find.byKey(const Key('col-0')),
+      matching: find.byType(DecoratedBox),
+    );
+    expect(cells, findsNWidgets(6));
+    for (final element in cells.evaluate()) {
+      final size = (element.renderObject! as RenderBox).size;
+      expect(size.width, greaterThan(20), reason: 'célula sem largura');
+      expect(size.height, greaterThan(20), reason: 'célula sem altura');
+    }
+  });
+
   testWidgets('contra o computador: ele responde e o título mostra o nível',
       (tester) async {
     final p = await pumpScreen(tester);

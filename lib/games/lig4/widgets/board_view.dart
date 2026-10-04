@@ -79,15 +79,21 @@ class _Hole extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (value == 0) {
-      return const DecoratedBox(
-        decoration: BoxDecoration(color: Color(0xFFDBEAFE), shape: BoxShape.circle),
+      // SizedBox.expand: sem filho, o DecoratedBox ficaria com largura zero.
+      return const SizedBox.expand(
+        child: DecoratedBox(
+          decoration:
+              BoxDecoration(color: Color(0xFFDBEAFE), shape: BoxShape.circle),
+        ),
       );
     }
-    Widget piece = DecoratedBox(
-      decoration: BoxDecoration(
-        color: value == 1 ? kLig4Red : kLig4Yellow,
-        shape: BoxShape.circle,
-        border: winning ? Border.all(color: Colors.white, width: 3) : null,
+    Widget piece = SizedBox.expand(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: value == 1 ? kLig4Red : kLig4Yellow,
+          shape: BoxShape.circle,
+          border: winning ? Border.all(color: Colors.white, width: 3) : null,
+        ),
       ),
     );
     if (winning) piece = _Pulse(child: piece);
