@@ -42,4 +42,18 @@ void main() {
       expect(normalizeWord(shown), answer, reason: shown);
     }
   });
+
+  test('plurais e femininos comuns são aceitos como tentativa', () async {
+    final bank = await WordBank.load(rootBundle);
+    for (final word in ['GATOS', 'MESAS', 'RATOS', 'OUTRA', 'CASAS', 'BOLAS']) {
+      expect(bank.isValid(word), isTrue, reason: word);
+    }
+  });
+
+  test('respostas não incluem palavras impróprias para a família', () async {
+    final bank = await WordBank.load(rootBundle);
+    for (final word in ['NEGRO', 'NEGRA', 'INDIO', 'BURRO', 'BESTA', 'PERUA', 'ESSES']) {
+      expect(bank.answers, isNot(contains(word)), reason: word);
+    }
+  });
 }

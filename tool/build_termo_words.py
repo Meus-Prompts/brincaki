@@ -62,6 +62,7 @@ cariz sarro coupé basal rasto reger sacro ganga óbice leone aruba sarja mouro
 cagar epóxi untar mango neuro cisto honor haras jango débil parma lomba canas
 algoz ninfa blend suede crush goela curió corso jataí sachê axial ceres tirso
 basco tutti ímpio tecno horda rebel copel édipo
+negra negro índio burro besta perua esses
 '''.split())
 
 
@@ -98,6 +99,18 @@ def main():
         n = norm(w)
         if is_five(n):
             validas.setdefault(n, unicodedata.normalize('NFC', w.upper()))
+
+    # O léxico nem sempre traz plurais e femininos (tem CASAS, não tem GATOS).
+    # Como tentativa (nunca como resposta), aceita também:
+    #   palavra de 4 letras terminada em vogal + S   (GATO → GATOS)
+    #   palavra de 5 letras terminada em O → A       (OUTRO → OUTRA)
+    for w in lexico:
+        n = norm(w)
+        shown = unicodedata.normalize('NFC', w.upper())
+        if re.fullmatch('[A-Z]{3}[AEO]', n):
+            validas.setdefault(n + 'S', shown + 'S')
+        elif is_five(n) and n.endswith('O'):
+            validas.setdefault(n[:-1] + 'A', shown[:-1] + 'A')
 
     flexionadas = {norm(w) for w in conj}
     excluir = {norm(w) for w in EXCLUIR}
