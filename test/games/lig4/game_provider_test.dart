@@ -105,6 +105,20 @@ void main() {
     expect(p.currentPlayer, 1);
   });
 
+  test('se o computador der erro, ele joga numa coluna válida e o jogo segue',
+      () async {
+    final p = Lig4Provider(
+      thinkTime: Duration.zero,
+      aiRunner: (board, me, level) async => throw StateError('falhou'),
+    )..start(_vsAi);
+    p.play(3);
+    await settle();
+    expect(p.aiThinking, isFalse);
+    expect(p.currentPlayer, 1, reason: 'a vez voltou para o humano');
+    final pieces = p.board.expand((r) => r).where((v) => v != 0).length;
+    expect(pieces, 2);
+  });
+
   test('trocar jogadores zera o placar', () {
     final p = Lig4Provider(thinkTime: Duration.zero, aiRunner: firstFree)..start(_duo);
     for (final col in [0, 1, 0, 1, 0, 1, 0]) {

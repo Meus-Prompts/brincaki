@@ -9,7 +9,8 @@ enum AiLevel { easy, medium, hard }
 const _centerOrder = [3, 2, 4, 1, 5, 0, 6];
 const _centerWeights = [1, 2, 3, 4, 3, 2, 1];
 const _winScore = 1000000;
-const _infinity = 1 << 40;
+// Não usar shift (1 << 40): no JavaScript ele dá 0 e quebra a busca na web.
+const _infinity = 1000000000;
 const _hardDepth = 6;
 
 /// Coluna escolhida pelo computador (jogador [me]) no nível pedido.

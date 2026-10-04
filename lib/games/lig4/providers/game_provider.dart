@@ -139,7 +139,14 @@ class Lig4Provider extends ChangeNotifier {
     await Future<void>.delayed(_thinkTime);
     if (_disposed || game != _gameId) return;
     final snapshot = _board.map((r) => List<int>.from(r)).toList();
-    final col = await _aiRunner(snapshot, computer, _aiLevel);
+    int col;
+    try {
+      col = await _aiRunner(snapshot, computer, _aiLevel);
+    } catch (_) {
+      // Nunca deixar o jogo preso em "Pensando...": joga numa coluna livre.
+      final valid = validColumns(snapshot);
+      col = valid[_random.nextInt(valid.length)];
+    }
     if (_disposed || game != _gameId) return;
     _aiThinking = false;
     _apply(col);
