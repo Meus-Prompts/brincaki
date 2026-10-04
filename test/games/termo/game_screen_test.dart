@@ -72,6 +72,15 @@ void main() {
     expect(p.guesses, isEmpty);
   });
 
+  testWidgets('aviso de erro fica acima do teclado, sem cobrir as teclas',
+      (tester) async {
+    await pumpScreen(tester);
+    await tapWord(tester, 'CARRA');
+    final warning = tester.getRect(find.text('Palavra inválida'));
+    final keyboardTop = tester.getRect(find.byKey(const Key('key-Q'))).top;
+    expect(warning.bottom, lessThan(keyboardTop));
+  });
+
   testWidgets('teclado físico também funciona', (tester) async {
     final p = await pumpScreen(tester);
     final wrong = ['PORTA', 'MESAS'].firstWhere((w) => w != p.answer);

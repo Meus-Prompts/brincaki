@@ -21,36 +21,7 @@ class TermoScreen extends StatefulWidget {
 }
 
 class _TermoScreenState extends State<TermoScreen> {
-  late final TermoProvider _provider;
-  int _shownShake = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _provider = context.read<TermoProvider>();
-    _provider.addListener(_onChange);
-  }
-
-  /// Cada erro novo (shakeCount muda) mostra o aviso uma vez.
-  void _onChange() {
-    if (_provider.shakeCount == _shownShake) return;
-    _shownShake = _provider.shakeCount;
-    final message = _provider.lastError;
-    if (message == null || !mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text(message, textAlign: TextAlign.center),
-        duration: const Duration(milliseconds: 1500),
-        behavior: SnackBarBehavior.floating,
-      ));
-  }
-
-  @override
-  void dispose() {
-    _provider.removeListener(_onChange);
-    super.dispose();
-  }
+  late final TermoProvider _provider = context.read<TermoProvider>();
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
@@ -110,7 +81,23 @@ class _TermoScreenState extends State<TermoScreen> {
                   selected: {p.mode},
                   onSelectionChanged: (s) => p.setMode(s.first),
                 ),
-                const SizedBox(height: 12),
+                // Aviso no topo: não cobre o teclado. Some ao digitar de novo.
+                SizedBox(
+                  height: 32,
+                  child: Center(
+                    child: p.lastError == null
+                        ? null
+                        : Text(
+                            p.lastError!,
+                            key: ValueKey('erro-${p.shakeCount}'),
+                            style: GoogleFonts.fredoka(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFFB91C1C),
+                            ),
+                          ),
+                  ),
+                ),
                 Expanded(
                   child: Center(
                     child: p.loading
