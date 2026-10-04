@@ -107,4 +107,45 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Jogar!'), findsOneWidget);
   });
+
+  testWidgets('jogar de novo não mostra as figuras da grade nova',
+      (tester) async {
+    final p = await pumpScreen(tester);
+    await tester.tap(find.text('Dois jogadores'));
+    await tester.pump();
+    await tester.tap(find.text('Jogar!'));
+    await tester.pumpAndSettle();
+    for (final ids in byEmoji(p).values) {
+      await tester.tap(find.byKey(Key('card-${ids[0]}')));
+      await tester.tap(find.byKey(Key('card-${ids[1]}')));
+      await tester.pumpAndSettle();
+    }
+    await tester.tap(find.text('Jogar de novo'));
+    await tester.pump(); // primeiro quadro da grade nova
+    await tester.pump(const Duration(milliseconds: 50));
+    for (final card in p.cards) {
+      expect(find.text(card.emoji), findsNothing,
+          reason: 'figura ${card.emoji} visível na grade nova');
+    }
+  });
+
+  testWidgets('tamanhos somem ao virar a 1ª carta sem a grade pular',
+      (tester) async {
+    final p = await pumpScreen(tester);
+    await tester.tap(find.text('Dois jogadores'));
+    await tester.pump();
+    await tester.tap(find.text('Jogar!'));
+    await tester.pumpAndSettle();
+    final before = tester.getRect(find.byKey(const Key('card-0')));
+
+    final groups = byEmoji(p).values.toList();
+    await tester.tap(find.byKey(Key('card-${groups[0][0]}')));
+    await tester.pumpAndSettle();
+    expect(find.text('Grande'), findsNothing);
+    await tester.tap(find.byKey(Key('card-${groups[1][0]}')));
+    await tester.pump();
+    expect(tester.getRect(find.byKey(const Key('card-0'))), before);
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+  });
 }

@@ -124,18 +124,24 @@ class _GameViewState extends State<_GameView> {
                 'Vitórias: ${p.wins1} × ${p.wins2}',
                 style: GoogleFonts.fredoka(fontSize: 14, color: _dark),
               ),
-              if (p.phase == MemoryPhase.playing && p.moves == 0)
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    for (final size in kDuoSizes.keys)
-                      ChoiceChip(
-                        label: Text(size),
-                        selected: p.duoSize == size,
-                        onSelected: (_) => p.setDuoSize(size),
-                      ),
-                  ],
-                ),
+              // Espaço sempre reservado: a grade não pula quando os
+              // tamanhos somem ao virar a primeira carta.
+              SizedBox(
+                height: 48,
+                child: p.phase == MemoryPhase.playing && p.untouched
+                    ? Wrap(
+                        spacing: 8,
+                        children: [
+                          for (final size in kDuoSizes.keys)
+                            ChoiceChip(
+                              label: Text(size),
+                              selected: p.duoSize == size,
+                              onSelected: (_) => p.setDuoSize(size),
+                            ),
+                        ],
+                      )
+                    : null,
+              ),
             ] else
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
@@ -176,6 +182,7 @@ class _CardGrid extends StatelessWidget {
           (constraints.maxHeight - _gap * (grid.rows - 1)) / grid.rows,
         );
         return Center(
+          key: ValueKey(p.dealId),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

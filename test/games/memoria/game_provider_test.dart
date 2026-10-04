@@ -156,6 +156,14 @@ void main() {
     expect(p.duoSize, 'Grande');
   });
 
+  test('setDuoSize não troca a grade com uma carta já virada', () {
+    p.start(_duo);
+    p.flip(0);
+    p.setDuoSize('Grande');
+    expect(p.duoSize, 'Média');
+    expect(p.cards[0].faceUp, isTrue);
+  });
+
   test('exitToSetup zera o placar', () {
     p.start(_duo);
     findAll(p);

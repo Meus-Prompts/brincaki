@@ -31,6 +31,10 @@ class MemoryProvider extends ChangeNotifier {
   int _draws = 0;
   bool _waitingToHide = false;
 
+  /// Muda a cada grade nova: a tela recria as cartas (sem reaproveitar a
+  /// animação da grade anterior, que mostraria as figuras novas).
+  int _dealId = 0;
+
   /// Cartas viradas na jogada atual que ainda não formaram par.
   final List<int> _open = [];
 
@@ -52,6 +56,10 @@ class MemoryProvider extends ChangeNotifier {
   int get wins2 => _wins2;
   int get draws => _draws;
   bool get waitingToHide => _waitingToHide;
+  int get dealId => _dealId;
+
+  /// Nenhuma carta virada nesta partida (ainda dá para trocar o tamanho).
+  bool get untouched => _moves == 0 && _open.isEmpty;
 
   /// Vencedor da partida em dois jogadores (null = empate ou ainda jogando).
   int? get winner {
@@ -78,7 +86,7 @@ class MemoryProvider extends ChangeNotifier {
   void setDuoSize(String size) {
     if (_mode != PlayMode.twoPlayers ||
         _phase != MemoryPhase.playing ||
-        _moves > 0 ||
+        !untouched ||
         !kDuoSizes.containsKey(size)) {
       return;
     }
@@ -182,5 +190,6 @@ class MemoryProvider extends ChangeNotifier {
     _moves = 0;
     _currentPlayer = _startingPlayer;
     _phase = MemoryPhase.playing;
+    _dealId++;
   }
 }
