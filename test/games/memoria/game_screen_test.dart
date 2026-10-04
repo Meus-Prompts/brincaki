@@ -71,7 +71,12 @@ void main() {
 
   testWidgets('sair com cartas erradas à mostra não deixa timer pendente',
       (tester) async {
-    final p = await pumpScreen(tester);
+    // Como no GameShell: o provider é criado na árvore e descartado ao sair.
+    late MemoryProvider p;
+    await tester.pumpWidget(ChangeNotifierProvider(
+      create: (_) => p = MemoryProvider(random: Random(2)),
+      child: const MaterialApp(home: MemoryScreen()),
+    ));
     await tester.tap(find.text('Jogar!'));
     await tester.pumpAndSettle();
     final groups = byEmoji(p).values.toList();
