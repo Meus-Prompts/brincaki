@@ -11,6 +11,12 @@ import '../games/tictactoe/screens/game_screen.dart';
 import '../games/tictactoe/providers/game_provider.dart';
 import '../games/forca/screens/game_screen.dart';
 import '../games/forca/providers/game_provider.dart' as forca;
+import '../games/memoria/screens/game_screen.dart';
+import '../games/memoria/providers/game_provider.dart';
+import '../games/termo/screens/game_screen.dart';
+import '../games/termo/providers/game_provider.dart';
+import '../games/lig4/screens/game_screen.dart';
+import '../games/lig4/providers/game_provider.dart';
 import '../widgets/game_shell.dart';
 
 class MenuScreen extends StatelessWidget {
@@ -118,6 +124,58 @@ class MenuScreen extends StatelessWidget {
     );
   }
 
+  void _openMemoria(BuildContext context) {
+    _openGame(
+      context,
+      GameShell(
+        wrapProvider: (child) => ChangeNotifierProvider(
+          create: (_) => MemoryProvider(),
+          child: child,
+        ),
+        theme: ThemeData(
+          colorSchemeSeed: const Color(0xFF8B5CF6),
+          useMaterial3: true,
+          textTheme: GoogleFonts.fredokaTextTheme(),
+        ),
+        home: (_) => const MemoryScreen(),
+      ),
+    );
+  }
+
+  void _openTermo(BuildContext context) {
+    _openGame(
+      context,
+      GameShell(
+        wrapProvider: (child) => ChangeNotifierProvider(
+          create: (_) => TermoProvider(),
+          child: child,
+        ),
+        theme: ThemeData(
+          colorSchemeSeed: const Color(0xFF14B8A6),
+          useMaterial3: true,
+          textTheme: GoogleFonts.fredokaTextTheme(),
+        ),
+        home: (_) => const TermoScreen(),
+      ),
+    );
+  }
+
+  void _openLig4(BuildContext context) {
+    _openGame(
+      context,
+      GameShell(
+        wrapProvider: (child) =>
+            ChangeNotifierProvider(create: (_) => Lig4Provider(), child: child),
+        theme: ThemeData(
+          colorSchemeSeed: const Color(0xFFEF4444),
+          useMaterial3: true,
+          textTheme: GoogleFonts.fredokaTextTheme(),
+        ),
+        home: (_) => const Lig4Screen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -184,6 +242,36 @@ class MenuScreen extends StatelessWidget {
                 gradientColors: const [Color(0xFF3B82F6), Color(0xFF60A5FA)],
                 shadowColor: const Color(0xFF3B82F6),
                 onTap: () => _openForca(context),
+              ),
+              const SizedBox(height: 16),
+              _buildGameCard(
+                emoji: '🧠',
+                title: 'Jogo da Memória',
+                description: 'Vire as cartas e encontre os pares!',
+                tags: const ['1 ou 2 jogadores', 'Níveis'],
+                gradientColors: const [Color(0xFF8B5CF6), Color(0xFFA78BFA)],
+                shadowColor: const Color(0xFF8B5CF6),
+                onTap: () => _openMemoria(context),
+              ),
+              const SizedBox(height: 16),
+              _buildGameCard(
+                emoji: '🟩',
+                title: 'Termo',
+                description: 'Descubra a palavra em 6 tentativas',
+                tags: const ['Palavra do dia', 'Português'],
+                gradientColors: const [Color(0xFF14B8A6), Color(0xFF2DD4BF)],
+                shadowColor: const Color(0xFF14B8A6),
+                onTap: () => _openTermo(context),
+              ),
+              const SizedBox(height: 16),
+              _buildGameCard(
+                emoji: '🔴',
+                title: 'Lig 4',
+                description: 'Alinhe 4 peças antes do adversário!',
+                tags: const ['Contra o computador', '2 jogadores'],
+                gradientColors: const [Color(0xFFEF4444), Color(0xFFF87171)],
+                shadowColor: const Color(0xFFEF4444),
+                onTap: () => _openLig4(context),
               ),
               const SizedBox(height: 32),
               _buildFooter(),
@@ -258,7 +346,8 @@ class MenuScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Center(
-                child: iconWidget ??
+                child:
+                    iconWidget ??
                     Text(emoji!, style: const TextStyle(fontSize: 36)),
               ),
             ),
@@ -290,7 +379,9 @@ class MenuScreen extends StatelessWidget {
                         .map(
                           (tag) => Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(99),
@@ -319,10 +410,7 @@ class MenuScreen extends StatelessWidget {
   Widget _buildFooter() {
     return Text(
       'Sem anúncios · Sem dados · 100% diversão 🌟',
-      style: GoogleFonts.fredoka(
-        fontSize: 12,
-        color: const Color(0xFFD97706),
-      ),
+      style: GoogleFonts.fredoka(fontSize: 12, color: const Color(0xFFD97706)),
     );
   }
 }
