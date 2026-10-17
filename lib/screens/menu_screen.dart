@@ -17,6 +17,7 @@ import '../games/termo/screens/game_screen.dart';
 import '../games/termo/providers/game_provider.dart';
 import '../games/lig4/screens/game_screen.dart';
 import '../games/lig4/providers/game_provider.dart';
+import '../widgets/game_palette.dart';
 import '../widgets/game_shell.dart';
 
 class MenuScreen extends StatelessWidget {
@@ -30,11 +31,7 @@ class MenuScreen extends StatelessWidget {
     _openGame(
       context,
       GameShell(
-        theme: ThemeData(
-          colorSchemeSeed: Colors.deepPurple,
-          useMaterial3: true,
-          textTheme: GoogleFonts.fredokaTextTheme(),
-        ),
+        theme: kCacaPalavrasPalette.theme,
         home: (_) => const cacapalavras.HomeScreen(),
       ),
     );
@@ -78,11 +75,7 @@ class MenuScreen extends StatelessWidget {
           create: (_) => Game2048Provider(),
           child: child,
         ),
-        theme: ThemeData(
-          colorSchemeSeed: const Color(0xFFF97316),
-          useMaterial3: true,
-          scaffoldBackgroundColor: const Color(0xFFFAF8EF),
-        ),
+        theme: k2048Palette.theme,
         home: (_) => const Game2048Screen(),
       ),
     );
@@ -96,11 +89,7 @@ class MenuScreen extends StatelessWidget {
           create: (_) => TicTacToeProvider(),
           child: child,
         ),
-        theme: ThemeData(
-          colorSchemeSeed: const Color(0xFFEC4899),
-          useMaterial3: true,
-          textTheme: GoogleFonts.fredokaTextTheme(),
-        ),
+        theme: kVelhaPalette.theme,
         home: (_) => const TicTacToeScreen(),
       ),
     );
@@ -114,11 +103,7 @@ class MenuScreen extends StatelessWidget {
           create: (_) => forca.ForcaProvider(),
           child: child,
         ),
-        theme: ThemeData(
-          colorSchemeSeed: const Color(0xFF3B82F6),
-          useMaterial3: true,
-          textTheme: GoogleFonts.fredokaTextTheme(),
-        ),
+        theme: kForcaPalette.theme,
         home: (_) => const ForcaScreen(),
       ),
     );
@@ -132,11 +117,7 @@ class MenuScreen extends StatelessWidget {
           create: (_) => MemoryProvider(),
           child: child,
         ),
-        theme: ThemeData(
-          colorSchemeSeed: const Color(0xFF8B5CF6),
-          useMaterial3: true,
-          textTheme: GoogleFonts.fredokaTextTheme(),
-        ),
+        theme: kMemoriaPalette.theme,
         home: (_) => const MemoryScreen(),
       ),
     );
@@ -150,11 +131,7 @@ class MenuScreen extends StatelessWidget {
           create: (_) => TermoProvider(),
           child: child,
         ),
-        theme: ThemeData(
-          colorSchemeSeed: const Color(0xFF14B8A6),
-          useMaterial3: true,
-          textTheme: GoogleFonts.fredokaTextTheme(),
-        ),
+        theme: kTermoPalette.theme,
         home: (_) => const TermoScreen(),
       ),
     );
@@ -166,11 +143,7 @@ class MenuScreen extends StatelessWidget {
       GameShell(
         wrapProvider: (child) =>
             ChangeNotifierProvider(create: (_) => Lig4Provider(), child: child),
-        theme: ThemeData(
-          colorSchemeSeed: const Color(0xFFEF4444),
-          useMaterial3: true,
-          textTheme: GoogleFonts.fredokaTextTheme(),
-        ),
+        theme: kLig4Palette.theme,
         home: (_) => const Lig4Screen(),
       ),
     );
@@ -191,8 +164,7 @@ class MenuScreen extends StatelessWidget {
                 title: 'Caça-Palavras',
                 description: 'Encontre as palavras escondidas na grade',
                 tags: const ['10 níveis', 'Português'],
-                gradientColors: const [Color(0xFFF59E0B), Color(0xFFFBBF24)],
-                shadowColor: const Color(0xFFF59E0B),
+                palette: kCacaPalavrasPalette,
                 onTap: () => _openCacaPalavras(context),
               ),
               const SizedBox(height: 16),
@@ -201,8 +173,7 @@ class MenuScreen extends StatelessWidget {
                 title: 'Sudoku',
                 description: 'Complete o tabuleiro de números',
                 tags: const ['5 dificuldades', 'Lógica'],
-                gradientColors: const [Color(0xFF10B981), Color(0xFF34D399)],
-                shadowColor: const Color(0xFF10B981),
+                palette: kSudokuPalette,
                 onTap: () => _openSudoku(context),
               ),
               const SizedBox(height: 16),
@@ -210,8 +181,7 @@ class MenuScreen extends StatelessWidget {
                 title: '2048',
                 description: 'Some as peças e chegue ao 2048!',
                 tags: const ['Swipe', 'Recorde'],
-                gradientColors: const [Color(0xFFF97316), Color(0xFFFB923C)],
-                shadowColor: const Color(0xFFF97316),
+                palette: k2048Palette,
                 onTap: () => _openGame2048(context),
                 iconWidget: const Text(
                   '2048',
@@ -229,8 +199,7 @@ class MenuScreen extends StatelessWidget {
                 title: 'Jogo da Velha',
                 description: 'Dois jogadores, uma vitória!',
                 tags: const ['2 Jogadores', 'Clássico'],
-                gradientColors: const [Color(0xFFEC4899), Color(0xFFF472B6)],
-                shadowColor: const Color(0xFFEC4899),
+                palette: kVelhaPalette,
                 onTap: () => _openTicTacToe(context),
               ),
               const SizedBox(height: 16),
@@ -239,8 +208,7 @@ class MenuScreen extends StatelessWidget {
                 title: 'Jogo da Forca',
                 description: 'Adivinhe a palavra letra por letra!',
                 tags: const ['7 níveis', 'Vocabulário'],
-                gradientColors: const [Color(0xFF3B82F6), Color(0xFF60A5FA)],
-                shadowColor: const Color(0xFF3B82F6),
+                palette: kForcaPalette,
                 onTap: () => _openForca(context),
               ),
               const SizedBox(height: 16),
@@ -249,8 +217,7 @@ class MenuScreen extends StatelessWidget {
                 title: 'Jogo da Memória',
                 description: 'Vire as cartas e encontre os pares!',
                 tags: const ['1 ou 2 jogadores', 'Níveis'],
-                gradientColors: const [Color(0xFF8B5CF6), Color(0xFFA78BFA)],
-                shadowColor: const Color(0xFF8B5CF6),
+                palette: kMemoriaPalette,
                 onTap: () => _openMemoria(context),
               ),
               const SizedBox(height: 16),
@@ -259,8 +226,7 @@ class MenuScreen extends StatelessWidget {
                 title: 'Termo',
                 description: 'Descubra a palavra em 6 tentativas',
                 tags: const ['Palavra do dia', 'Português'],
-                gradientColors: const [Color(0xFF14B8A6), Color(0xFF2DD4BF)],
-                shadowColor: const Color(0xFF14B8A6),
+                palette: kTermoPalette,
                 onTap: () => _openTermo(context),
               ),
               const SizedBox(height: 16),
@@ -269,8 +235,7 @@ class MenuScreen extends StatelessWidget {
                 title: 'Lig 4',
                 description: 'Alinhe 4 peças antes do adversário!',
                 tags: const ['Contra o computador', '2 jogadores'],
-                gradientColors: const [Color(0xFFEF4444), Color(0xFFF87171)],
-                shadowColor: const Color(0xFFEF4444),
+                palette: kLig4Palette,
                 onTap: () => _openLig4(context),
               ),
               const SizedBox(height: 32),
@@ -313,8 +278,7 @@ class MenuScreen extends StatelessWidget {
     required String title,
     required String description,
     required List<String> tags,
-    required List<Color> gradientColors,
-    required Color shadowColor,
+    required GamePalette palette,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -322,14 +286,14 @@ class MenuScreen extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: gradientColors,
+            colors: [palette.accent, palette.light],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: shadowColor.withValues(alpha: 0.35),
+              color: palette.accent.withValues(alpha: 0.35),
               blurRadius: 20,
               offset: const Offset(0, 6),
             ),

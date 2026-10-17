@@ -1,7 +1,10 @@
 // lib/widgets/player_setup.dart
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
+import 'game_palette.dart';
+import 'level_picker.dart';
+import 'setup_header.dart';
 
 enum PlayMode { solo, twoPlayers }
 
@@ -29,7 +32,7 @@ class PlayerSetup extends StatefulWidget {
     super.key,
     required this.title,
     required this.emoji,
-    required this.accent,
+    required this.palette,
     required this.soloLabel,
     required this.symbols,
     required this.onStart,
@@ -39,7 +42,7 @@ class PlayerSetup extends StatefulWidget {
 
   final String title;
   final String emoji;
-  final Color accent;
+  final GamePalette palette;
   final String soloLabel;
   final (String, String) symbols;
   final ValueChanged<PlayerSetupResult> onStart;
@@ -87,17 +90,7 @@ class _PlayerSetupState extends State<PlayerSetup> {
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          Text(widget.emoji, style: const TextStyle(fontSize: 56)),
-          const SizedBox(height: 8),
-          Text(
-            widget.title,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.fredoka(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: widget.accent,
-            ),
-          ),
+          SetupHeader(palette: widget.palette, emoji: widget.emoji, title: widget.title),
           const SizedBox(height: 24),
           SegmentedButton<PlayMode>(
             showSelectedIcon: false,
@@ -129,40 +122,16 @@ class _PlayerSetupState extends State<PlayerSetup> {
           ],
           if (solo && levels != null) ...[
             const SizedBox(height: 20),
-            Text(
-              'Nível',
-              style: GoogleFonts.fredoka(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            SegmentedButton<int>(
-              showSelectedIcon: false,
-              segments: [
-                for (var i = 0; i < levels.length; i++)
-                  ButtonSegment(value: i, label: Text(levels[i])),
-              ],
-              selected: {_level},
-              onSelectionChanged: (s) => setState(() => _level = s.first),
+            LevelPicker(
+              palette: widget.palette,
+              label: 'Nível',
+              levels: levels,
+              selected: _level,
+              onChanged: (i) => setState(() => _level = i),
             ),
           ],
           const SizedBox(height: 28),
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton(
-              onPressed: _start,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: widget.accent,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              child: Text(
-                'Jogar!',
-                style: GoogleFonts.fredoka(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
+          StartButton(palette: widget.palette, onPressed: _start),
         ],
       ),
     );

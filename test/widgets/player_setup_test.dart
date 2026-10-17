@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:brincaki/widgets/game_palette.dart';
 import 'package:brincaki/widgets/player_setup.dart';
 
 void main() {
@@ -15,7 +16,7 @@ void main() {
         body: PlayerSetup(
           title: 'Lig 4',
           emoji: '🔴',
-          accent: Colors.red,
+          palette: kLig4Palette,
           soloLabel: 'Contra o computador',
           symbols: ('🔴', '🟡'),
           levels: levels,

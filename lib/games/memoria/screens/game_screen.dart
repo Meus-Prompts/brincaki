@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import '../../../widgets/game_palette.dart';
 import '../../../widgets/player_setup.dart';
 import '../../../widgets/score_board.dart';
 import '../data/levels.dart';
@@ -53,7 +54,7 @@ class MemoryScreen extends StatelessWidget {
             ? PlayerSetup(
                 title: 'Jogo da Memória',
                 emoji: '🧠',
-                accent: kMemoryPurple,
+                palette: kMemoriaPalette,
                 soloLabel: 'Sozinho',
                 symbols: ('🐶', '🐱'),
                 onStart: p.start,

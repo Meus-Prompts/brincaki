@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import '../../../widgets/game_palette.dart';
 import '../../../widgets/player_setup.dart';
 import '../../../widgets/score_board.dart';
 import '../logic/ai.dart';
@@ -49,7 +50,7 @@ class Lig4Screen extends StatelessWidget {
             ? PlayerSetup(
                 title: 'Lig 4',
                 emoji: '🔴',
-                accent: kLig4Red,
+                palette: kLig4Palette,
                 soloLabel: 'Contra o computador',
                 symbols: ('🔴', '🟡'),
                 levels: _levels,
