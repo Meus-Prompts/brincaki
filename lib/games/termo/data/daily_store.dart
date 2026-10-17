@@ -33,11 +33,12 @@ abstract class DailyStore {
 class SharedPrefsDailyStore implements DailyStore {
   static const _key = 'termo_daily';
 
+  /// Nada salvo, valor de outro tipo ou JSON estragado dão `null`.
   @override
   Future<DailyState?> load() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_key);
-    if (raw == null) return null;
+    final raw = prefs.get(_key);
+    if (raw is! String) return null;
     try {
       return DailyState.fromJson(jsonDecode(raw));
     } on FormatException {
