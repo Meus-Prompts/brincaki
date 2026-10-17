@@ -2,8 +2,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../logic/board.dart';
 import '../providers/game_provider.dart';
-import '../models/game_state.dart';
+
+/// Símbolo de cada jogador: 1 é ❌ e 2 é ⭕.
+String symbolOf(int player) => switch (player) {
+  1 => '❌',
+  2 => '⭕',
+  _ => '',
+};
 
 class BoardWidget extends StatelessWidget {
   const BoardWidget({super.key});
@@ -11,34 +19,34 @@ class BoardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.watch<TicTacToeProvider>();
-    final bool interactive = p.phase == GamePhase.playing;
 
     return AspectRatio(
       aspectRatio: 1,
       child: Padding(
         padding: const EdgeInsets.all(12),
-        child: GridView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-          ),
-          itemCount: 9,
-          itemBuilder: (context, index) {
-            final row = index ~/ 3;
-            final col = index % 3;
-            final cell = p.board[row][col];
-            final isWinning = p.winningCells?.contains((row, col)) ?? false;
-
-            return _BoardCell(
-              cell: cell,
-              isWinning: isWinning,
-              onTap: interactive && cell == Cell.empty
-                  ? () => p.makeMove(row, col)
-                  : null,
-            );
-          },
+        child: Column(
+          children: [
+            for (var row = 0; row < kSize; row++) ...[
+              if (row > 0) const SizedBox(height: 10),
+              Expanded(
+                child: Row(
+                  children: [
+                    for (var col = 0; col < kSize; col++) ...[
+                      if (col > 0) const SizedBox(width: 10),
+                      Expanded(
+                        child: _BoardCell(
+                          key: Key('cell-$row-$col'),
+                          value: p.board[row][col],
+                          isWinning: p.winningCells?.contains((row, col)) ?? false,
+                          onTap: () => p.play(row, col),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
@@ -46,15 +54,11 @@ class BoardWidget extends StatelessWidget {
 }
 
 class _BoardCell extends StatelessWidget {
-  final Cell cell;
+  final int value;
   final bool isWinning;
-  final VoidCallback? onTap;
+  final VoidCallback onTap;
 
-  const _BoardCell({
-    required this.cell,
-    required this.isWinning,
-    this.onTap,
-  });
+  const _BoardCell({super.key, required this.value, required this.isWinning, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -63,14 +67,10 @@ class _BoardCell extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: isWinning
-              ? const Color(0xFFBBF7D0)
-              : Colors.white,
+          color: isWinning ? const Color(0xFFBBF7D0) : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isWinning
-                ? const Color(0xFF22C55E)
-                : const Color(0xFFE5E7EB),
+            color: isWinning ? const Color(0xFF22C55E) : const Color(0xFFE5E7EB),
             width: isWinning ? 2.5 : 1.5,
           ),
           boxShadow: [
@@ -83,12 +83,12 @@ class _BoardCell extends StatelessWidget {
         ),
         child: Center(
           child: AnimatedScale(
-            scale: cell == Cell.empty ? 0.0 : 1.0,
+            scale: value == 0 ? 0.0 : 1.0,
             duration: const Duration(milliseconds: 200),
             curve: Curves.elasticOut,
-            child: Text(
-              cell.emoji,
-              style: const TextStyle(fontSize: 40),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(symbolOf(value), style: const TextStyle(fontSize: 40)),
             ),
           ),
         ),

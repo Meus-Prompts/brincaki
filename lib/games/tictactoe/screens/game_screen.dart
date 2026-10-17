@@ -3,12 +3,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+
+import '../../../widgets/game_palette.dart';
+import '../../../widgets/game_scaffold.dart';
+import '../../../widgets/player_setup.dart';
+import '../../../widgets/result_panel.dart';
+import '../../../widgets/score_board.dart';
 import '../models/game_state.dart';
 import '../providers/game_provider.dart';
-import '../widgets/setup_form.dart';
-import '../widgets/score_banner.dart';
 import '../widgets/board_widget.dart';
-import '../widgets/result_overlay.dart';
+
+const _title = 'Jogo da Velha';
+const _levels = ['Fácil', 'Médio', 'Difícil'];
 
 class TicTacToeScreen extends StatelessWidget {
   const TicTacToeScreen({super.key});
@@ -16,69 +22,93 @@ class TicTacToeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.watch<TicTacToeProvider>();
+    final setup = p.phase == GamePhase.setup;
+    final title = !setup && p.mode == PlayMode.solo
+        ? '$_title • ${_levels[p.aiLevel.index]}'
+        : _title;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFFFF1F2),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFFFF1F2),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFFBE185D)),
-          tooltip: 'Voltar ao menu',
-          onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-        ),
-        title: Text(
-          'Jogo da Velha',
-          style: GoogleFonts.fredoka(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFFBE185D),
-          ),
-        ),
-      ),
-      body: SafeArea(
-        child: p.phase == GamePhase.setup
-            ? const SetupForm()
-            : _GameView(),
-      ),
+    return GameScaffold(
+      palette: kVelhaPalette,
+      title: title,
+      body: setup
+          ? PlayerSetup(
+              title: _title,
+              emoji: '❌⭕',
+              palette: kVelhaPalette,
+              soloLabel: 'Contra o computador',
+              symbols: ('❌', '⭕'),
+              levels: _levels,
+              soloOpponentName: 'Computador',
+              onStart: p.start,
+            )
+          : const _GameBody(),
+      result: p.phase == GamePhase.finished ? const _Result() : null,
     );
   }
 }
 
-class _GameView extends StatelessWidget {
+class _GameBody extends StatelessWidget {
+  const _GameBody();
+
   @override
   Widget build(BuildContext context) {
     final p = context.watch<TicTacToeProvider>();
+    final name = p.currentPlayer == 1 ? p.name1 : p.name2;
+    final turn = p.isComputerTurn || p.aiThinking
+        ? '🤖 Pensando...'
+        : 'Vez de ${symbolOf(p.currentPlayer)} $name';
 
     return Column(
       children: [
-        const ScoreBanner(),
-        if (p.phase == GamePhase.playing) _TurnIndicator(),
-        const Expanded(child: BoardWidget()),
-        if (p.phase == GamePhase.result) const ResultOverlay(),
-        const SizedBox(height: 8),
+        ScoreBoard(
+          name1: p.name1,
+          name2: p.name2,
+          symbol1: symbolOf(1),
+          symbol2: symbolOf(2),
+          score1: p.wins1,
+          score2: p.wins2,
+          draws: p.draws,
+          activePlayer: p.phase == GamePhase.playing ? p.currentPlayer : null,
+          accent: kVelhaPalette.accent,
+        ),
+        if (p.phase == GamePhase.playing)
+          Text(
+            turn,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.fredoka(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: kVelhaPalette.dark,
+            ),
+          ),
+        const Expanded(child: Center(child: BoardWidget())),
       ],
     );
   }
 }
 
-class _TurnIndicator extends StatelessWidget {
+class _Result extends StatelessWidget {
+  const _Result();
+
   @override
   Widget build(BuildContext context) {
     final p = context.watch<TicTacToeProvider>();
-    final name = p.currentPlayer == 1 ? p.player1Name : p.player2Name;
-    final symbol = p.currentPlayer == 1 ? '❌' : '⭕';
+    final (emoji, title) = switch (p.winner) {
+      null => ('🤝', 'Empate!'),
+      TicTacToeProvider.computer when p.mode == PlayMode.solo => ('🤖', 'O computador venceu!'),
+      1 => ('🏆', '${p.name1} venceu!'),
+      _ => ('🏆', '${p.name2} venceu!'),
+    };
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Text(
-        'Vez de $symbol $name!',
-        style: GoogleFonts.fredoka(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: const Color(0xFFBE185D),
-        ),
-      ),
+    return ResultPanel(
+      palette: kVelhaPalette,
+      emoji: emoji,
+      title: title,
+      actions: [
+        ResultAction('Jogar de novo', p.playAgain),
+        ResultAction('Trocar jogadores', p.exitToSetup, primary: false),
+      ],
     );
   }
 }
