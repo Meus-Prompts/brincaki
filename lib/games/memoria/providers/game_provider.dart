@@ -72,7 +72,9 @@ class MemoryProvider extends ChangeNotifier {
     _mode = setup.mode;
     _name1 = setup.player1;
     _name2 = setup.player2;
-    _level = 1;
+    // Nível escolhido na tela de início (só no solo); fora da lista, o 1.
+    final index = setup.levelIndex ?? 0;
+    _level = index >= 0 && index < kSoloLevels.length ? index + 1 : 1;
     _duoSize = 'Média';
     _wins1 = 0;
     _wins2 = 0;
@@ -139,9 +141,10 @@ class MemoryProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Solo: vai para o próximo nível; no último, joga o mesmo de novo.
   void nextLevel() {
     if (_mode != PlayMode.solo || _phase != MemoryPhase.finished) return;
-    _level = isLastLevel ? 1 : _level + 1;
+    if (!isLastLevel) _level++;
     _deal();
     notifyListeners();
   }
