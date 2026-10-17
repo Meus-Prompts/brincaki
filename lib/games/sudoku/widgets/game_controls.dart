@@ -1,110 +1,115 @@
+// lib/games/sudoku/widgets/game_controls.dart
+
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import '../../../widgets/game_palette.dart';
 import '../providers/game_provider.dart';
 
+/// Botões abaixo do teclado: modo de entrada, apagar, dica e novo jogo.
 class GameControls extends StatelessWidget {
   const GameControls({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<GameProvider>();
+    final provider = context.watch<SudokuProvider>();
+    final hints = provider.hintsRemaining;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _ControlButton(
-          icon: provider.numberFirstMode ? Icons.grid_on : Icons.dialpad,
-          label: provider.numberFirstMode ? 'Nº Primeiro' : 'Célula',
-          onPressed: provider.isComplete ? null : () => provider.toggleInputMode(),
+          icon: provider.numberFirstMode ? Icons.dialpad : Icons.grid_on,
+          label: provider.numberFirstMode ? 'Número' : 'Casa',
+          onPressed: provider.toggleInputMode,
           isActive: provider.numberFirstMode,
         ),
         _ControlButton(
           icon: Icons.backspace_outlined,
-          label: 'Limpar',
-          onPressed: provider.isComplete ? null : () => provider.clearCell(),
+          label: 'Apagar',
+          onPressed: provider.clearCell,
+        ),
+        _ControlButton(
+          icon: Icons.lightbulb_outline,
+          label: 'Dica ($hints)',
+          onPressed: hints > 0 ? provider.useHint : null,
         ),
         _ControlButton(
           icon: Icons.refresh,
-          label: 'Novo Jogo',
-          onPressed: () => _showNewGameDialog(context, provider),
+          label: 'Novo jogo',
+          onPressed: () => _confirmNewGame(context, provider),
         ),
       ],
     );
   }
 
-  void _showNewGameDialog(BuildContext context, GameProvider provider) {
-    showDialog(
+  Future<void> _confirmNewGame(BuildContext context, SudokuProvider provider) async {
+    const palette = kSudokuPalette;
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text('Novo Jogo', style: TextStyle(color: Colors.white)),
-        content: const Text(
-          'Deseja iniciar um novo jogo? O progresso atual será perdido.',
-          style: TextStyle(color: Colors.white70),
+        title: Text('Novo jogo?', style: GoogleFonts.fredoka(fontWeight: FontWeight.bold)),
+        content: Text(
+          'O progresso desta partida será perdido.',
+          style: GoogleFonts.fredoka(fontSize: 16),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Continuar jogando', style: GoogleFonts.fredoka()),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              provider.newGame();
-            },
-            child: const Text('Novo Jogo'),
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: palette.accent,
+              foregroundColor: Colors.white,
+            ),
+            child: Text('Novo jogo', style: GoogleFonts.fredoka()),
           ),
         ],
       ),
     );
+    if (confirmed ?? false) provider.newGame();
   }
 }
 
 class _ControlButton extends StatelessWidget {
+  const _ControlButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    this.isActive = false,
+  });
+
   final IconData icon;
   final String label;
   final VoidCallback? onPressed;
   final bool isActive;
 
-  const _ControlButton({
-    required this.icon,
-    required this.label,
-    this.onPressed,
-    this.isActive = false,
-  });
-
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    const palette = kSudokuPalette;
+    final color = onPressed == null ? Colors.grey : palette.dark;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          decoration: isActive
-              ? BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(8),
-                )
-              : null,
-          child: IconButton(
-            onPressed: onPressed,
-            icon: Icon(icon),
-            iconSize: 28,
-            color: isActive
-                ? theme.colorScheme.primary
-                : (onPressed != null ? theme.colorScheme.primary : Colors.grey),
+        IconButton(
+          onPressed: onPressed,
+          tooltip: label,
+          icon: Icon(icon),
+          iconSize: 26,
+          color: isActive ? Colors.white : palette.accent,
+          disabledColor: Colors.grey,
+          style: IconButton.styleFrom(
+            backgroundColor: isActive ? palette.accent : Colors.white,
+            side: BorderSide(color: palette.accent.withValues(alpha: 0.4)),
           ),
         ),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            color: isActive
-                ? theme.colorScheme.primary
-                : (onPressed != null ? Colors.white70 : Colors.grey),
-          ),
+          style: GoogleFonts.fredoka(fontSize: 13, fontWeight: FontWeight.w600, color: color),
         ),
       ],
     );

@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../games/cacapalavras/screens/game_screen.dart';
 import '../games/cacapalavras/providers/game_provider.dart' as cacapalavras;
-import '../games/sudoku/screens/home_screen.dart' as sudoku;
+import '../games/sudoku/screens/game_screen.dart';
 import '../games/sudoku/providers/game_provider.dart';
 import '../games/2048/screens/game_screen.dart';
 import '../games/2048/providers/game_provider.dart';
@@ -47,27 +47,9 @@ class MenuScreen extends StatelessWidget {
       context,
       GameShell(
         wrapProvider: (child) =>
-            ChangeNotifierProvider(create: (_) => GameProvider(), child: child),
-        theme: ThemeData(
-          brightness: Brightness.dark,
-          scaffoldBackgroundColor: const Color(0xFF121212),
-          colorScheme: const ColorScheme.dark(
-            primary: Color(0xFFBB86FC),
-            surface: Color(0xFF1E1E1E),
-            error: Color(0xFFCF6679),
-          ),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFF1E1E1E),
-            elevation: 0,
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFBB86FC),
-              foregroundColor: Colors.black,
-            ),
-          ),
-        ),
-        home: (_) => const sudoku.HomeScreen(),
+            ChangeNotifierProvider(create: (_) => SudokuProvider(), child: child),
+        theme: kSudokuPalette.theme,
+        home: (_) => const SudokuScreen(),
       ),
     );
   }

@@ -1,14 +1,18 @@
-import 'package:flutter/material.dart';
+// lib/games/sudoku/widgets/sudoku_cell_widget.dart
 
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../../../widgets/game_palette.dart';
 import '../models/sudoku_cell.dart';
 
-class SudokuCellWidget extends StatelessWidget {
-  final SudokuCell cell;
-  final bool isSelected;
-  final bool isHighlighted;
-  final bool isSameNumber;
-  final VoidCallback onTap;
+/// Vermelho dos números em conflito.
+const kSudokuError = Color(0xFFDC2626);
 
+/// Cinza-escuro dos números que já vêm no tabuleiro.
+const kSudokuFixed = Color(0xFF1F2937);
+
+class SudokuCellWidget extends StatelessWidget {
   const SudokuCellWidget({
     super.key,
     required this.cell,
@@ -18,45 +22,44 @@ class SudokuCellWidget extends StatelessWidget {
     required this.onTap,
   });
 
+  final SudokuCell cell;
+  final bool isSelected;
+  final bool isHighlighted;
+  final bool isSameNumber;
+  final VoidCallback onTap;
+
+  Color get backgroundColor {
+    const palette = kSudokuPalette;
+    if (isSelected) return palette.accent.withValues(alpha: 0.45);
+    if (cell.isError) return kSudokuError.withValues(alpha: 0.12);
+    if (isSameNumber && !cell.isEmpty) return palette.accent.withValues(alpha: 0.25);
+    if (isHighlighted) return palette.background;
+    return Colors.white;
+  }
+
+  Color get textColor {
+    if (cell.isError) return kSudokuError;
+    if (cell.isFixed) return kSudokuFixed;
+    return kSudokuPalette.dark;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    Color backgroundColor;
-    if (isSelected) {
-      backgroundColor = theme.colorScheme.primary.withValues(alpha: 0.4);
-    } else if (isSameNumber && !cell.isEmpty) {
-      backgroundColor = theme.colorScheme.primary.withValues(alpha: 0.2);
-    } else if (isHighlighted) {
-      backgroundColor = theme.colorScheme.surface.withValues(alpha: 0.3);
-    } else {
-      backgroundColor = Colors.transparent;
-    }
-
-    Color textColor;
-    if (cell.isError) {
-      textColor = theme.colorScheme.error;
-    } else if (cell.isFixed) {
-      textColor = Colors.grey.shade400;
-    } else {
-      textColor = Colors.white;
-    }
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        decoration: BoxDecoration(
-          color: backgroundColor,
-        ),
+        color: backgroundColor,
         child: Center(
           child: cell.isEmpty
               ? null
-              : Text(
-                  cell.value.toString(),
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: cell.isFixed ? FontWeight.bold : FontWeight.normal,
-                    color: textColor,
+              : FittedBox(
+                  child: Text(
+                    cell.value.toString(),
+                    style: GoogleFonts.fredoka(
+                      fontSize: 22,
+                      fontWeight: cell.isFixed ? FontWeight.w700 : FontWeight.w500,
+                      color: textColor,
+                    ),
                   ),
                 ),
         ),

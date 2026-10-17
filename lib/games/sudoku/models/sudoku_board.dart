@@ -1,13 +1,13 @@
+// lib/games/sudoku/models/sudoku_board.dart
+
 import 'sudoku_cell.dart';
 
+/// Tabuleiro imutável: cada jogada devolve um novo, com os conflitos marcados.
 class SudokuBoard {
   final List<List<SudokuCell>> cells;
   final List<List<int>> solution;
 
-  SudokuBoard({
-    required this.cells,
-    required this.solution,
-  });
+  SudokuBoard({required this.cells, required this.solution});
 
   SudokuCell getCell(int row, int col) => cells[row][col];
 
@@ -25,17 +25,17 @@ class SudokuBoard {
   }
 
   bool isValidMove(int row, int col, int value) {
-    // Check row
+    // Linha
     for (int c = 0; c < 9; c++) {
       if (c != col && cells[row][c].value == value) return false;
     }
 
-    // Check column
+    // Coluna
     for (int r = 0; r < 9; r++) {
       if (r != row && cells[r][col].value == value) return false;
     }
 
-    // Check 3x3 box
+    // Bloco 3x3 (linha e coluna já foram vistas acima)
     final boxRow = (row ~/ 3) * 3;
     final boxCol = (col ~/ 3) * 3;
     for (int r = boxRow; r < boxRow + 3; r++) {
@@ -58,19 +58,6 @@ class SudokuBoard {
   }
 
   int getHint(int row, int col) => solution[row][col];
-
-  SudokuBoard clearErrors() {
-    final newCells = cells.map((row) {
-      return row.map((cell) {
-        if (cell.isError) {
-          return cell.copyWith(isError: false);
-        }
-        return cell;
-      }).toList();
-    }).toList();
-
-    return SudokuBoard(cells: newCells, solution: solution);
-  }
 
   SudokuBoard revalidateAll() {
     final newCells = <List<SudokuCell>>[];
