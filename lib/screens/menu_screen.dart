@@ -202,8 +202,8 @@ class MenuScreen extends StatelessWidget {
               _buildGameCard(
                 emoji: '✖️',
                 title: 'Jogo da Velha',
-                description: 'Dois jogadores, uma vitória!',
-                tags: const ['2 Jogadores', 'Clássico'],
+                description: 'Contra o computador ou um amigo!',
+                tags: const ['Contra o computador', '2 jogadores'],
                 palette: kVelhaPalette,
                 onTap: () => _openTicTacToe(context),
               ),
