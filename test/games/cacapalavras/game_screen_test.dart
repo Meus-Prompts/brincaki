@@ -58,7 +58,8 @@ Future<void> openGame(WidgetTester tester, {int seed = 11}) async {
   await tester.pumpAndSettle();
 }
 
-WordSearchProvider providerOf(WidgetTester tester) => Provider.of<WordSearchProvider>(
+WordSearchProvider providerOf(WidgetTester tester) =>
+    Provider.of<WordSearchProvider>(
       tester.element(find.byType(CacaPalavrasScreen)),
       listen: false,
     );
@@ -102,7 +103,11 @@ Future<void> findAllByDragging(WidgetTester tester) async {
     final (from, to) = i.isEven
         ? (w.cells.first, w.cells.last)
         : (w.cells.last, w.cells.first);
-    await drag(tester, cellCenter(rect, size, from), cellCenter(rect, size, to));
+    await drag(
+      tester,
+      cellCenter(rect, size, from),
+      cellCenter(rect, size, to),
+    );
     expect(p.found, contains(w.word), reason: '${w.word} no nível ${p.level}');
     expect(tester.takeException(), isNull);
   }
@@ -147,7 +152,10 @@ void main() {
 
       // Próximo nível.
       await tapText(tester, 'Próximo nível');
-      expect(find.text('Caça-Palavras • Nível 4 — Corpo humano'), findsOneWidget);
+      expect(
+        find.text('Caça-Palavras • Nível 4 — Corpo humano'),
+        findsOneWidget,
+      );
       expect(find.byType(ResultPanel), findsNothing);
       expect(p.found, isEmpty);
 
@@ -158,7 +166,10 @@ void main() {
       expect(p.phase, WordSearchPhase.setup);
       expect(find.text('Caça-Palavras'), findsWidgets);
       final chip = tester.widget<ChoiceChip>(
-        find.ancestor(of: find.text('4 • Corpo humano'), matching: find.byType(ChoiceChip)),
+        find.ancestor(
+          of: find.text('4 • Corpo humano'),
+          matching: find.byType(ChoiceChip),
+        ),
       );
       expect(chip.selected, isTrue);
 
@@ -182,7 +193,9 @@ void main() {
       expect(find.byType(CacaPalavrasScreen), findsNothing);
     });
 
-    testWidgets('$label: Mudar nível no último nível volta ao setup', (tester) async {
+    testWidgets('$label: Mudar nível no último nível volta ao setup', (
+      tester,
+    ) async {
       useScreenSize(tester, screen);
       await openGame(tester, seed: 3);
       await chooseLevel(tester, '10 • Ciência');
@@ -212,7 +225,9 @@ void main() {
     expect(find.text(_menuText), findsOneWidget);
   });
 
-  testWidgets('arrastar sobre uma palavra pinta a seleção e depois a marca', (tester) async {
+  testWidgets('arrastar sobre uma palavra pinta a seleção e depois a marca', (
+    tester,
+  ) async {
     useScreenSize(tester, const Size(360, 740));
     await openGame(tester);
     await tapText(tester, 'Jogar!');
@@ -221,7 +236,9 @@ void main() {
     final rect = tester.getRect(find.byType(LetterGrid));
     final w = p.words.first;
 
-    final gesture = await tester.startGesture(cellCenter(rect, 6, w.cells.first));
+    final gesture = await tester.startGesture(
+      cellCenter(rect, 6, w.cells.first),
+    );
     await gesture.moveTo(cellCenter(rect, 6, w.cells.last));
     await tester.pump();
     expect(p.selectedCells, w.cells);
