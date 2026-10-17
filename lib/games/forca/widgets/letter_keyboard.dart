@@ -1,3 +1,5 @@
+// lib/games/forca/widgets/letter_keyboard.dart
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/game_state.dart';
@@ -27,6 +29,7 @@ class LetterKeyboard extends StatelessWidget {
         children: _alphabet.split('').map((letter) {
           final state = letterStates[letter] ?? LetterState.unguessed;
           return _LetterButton(
+            key: ValueKey('tecla-$letter'),
             letter: letter,
             state: state,
             onTap: disabled ? null : () => onLetterTap(letter),
@@ -43,6 +46,7 @@ class _LetterButton extends StatelessWidget {
   final VoidCallback? onTap;
 
   const _LetterButton({
+    super.key,
     required this.letter,
     required this.state,
     this.onTap,

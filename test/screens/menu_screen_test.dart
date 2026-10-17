@@ -53,7 +53,7 @@ void main() {
     'Sudoku': find.text('Selecione a dificuldade'),
     '2048': find.text('Novo jogo'),
     'Jogo da Velha': find.text('Jogo da Velha'),
-    'Jogo da Forca': find.textContaining('Jogo da Forca  •  Nível 1'),
+    'Jogo da Forca': find.text('Nível'),
     'Jogo da Memória': find.text('Sozinho'),
     'Termo': find.text('Ilimitado'),
     'Lig 4': find.text('Contra o computador'),

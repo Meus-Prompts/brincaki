@@ -1,3 +1,5 @@
+// lib/games/forca/widgets/hangman_painter.dart
+
 import 'package:flutter/material.dart';
 import 'dart:math' show pi;
 
