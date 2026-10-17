@@ -1,0 +1,101 @@
+# Gera os APKs e publica a release quando uma tag vX.Y.Z chega no GitHub.
+#
+# Como lançar uma versão:
+#   1. Subir `version:` no pubspec.yaml (ex.: 1.1.0+2) e fazer commit na main.
+#   2. git tag v1.1.0 && git push origin v1.1.0
+#
+# Secrets necessários (Settings → Secrets and variables → Actions):
+#   ANDROID_KEYSTORE_BASE64   keystore de release em base64
+#   ANDROID_KEYSTORE_PASSWORD senha da keystore e da chave "brincaki"
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Conferir a tag com a versão do pubspec.yaml
+        run: |
+          version=$(sed -n 's/^version: *\([^+]*\).*/\1/p' pubspec.yaml)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::A tag $GITHUB_REF_NAME não bate com a versão $version do pubspec.yaml"
+            exit 1
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.44.2
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Analisar e testar
+        run: |
+          flutter analyze
+          flutter test --coverage
+          python3 tool/check_coverage.py
+
+      - name: Preparar a chave de assinatura
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "::error::Faltam os secrets ANDROID_KEYSTORE_BASE64 e ANDROID_KEYSTORE_PASSWORD"
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/release.jks
+          cat > android/key.properties <<EOF
+          storeFile=release.jks
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=brincaki
+          keyPassword=$KEYSTORE_PASSWORD
+          EOF
+
+      - name: Gerar os APKs
+        run: |
+          flutter build apk --release --split-per-abi --target-platform android-arm64
+          flutter build apk --release
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/Brincaki-arm64.apk
+          cp build/app/outputs/flutter-apk/app-release.apk dist/Brincaki-universal.apk
+
+      - name: Conferir a assinatura
+        run: |
+          apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          for apk in dist/*.apk; do
+            "$apksigner" verify --print-certs "$apk" | tee /dev/stderr | grep -q 'CN=Brincaki'
+          done
+
+      - name: Publicar a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/*.apk \
+            --title "Brincaki $VERSION" \
+            --notes-file .github/release-notes.md \
+            --generate-notes
+
+      - name: Apagar a chave do runner
+        if: always()
+        run: rm -f android/app/release.jks android/key.properties
