@@ -50,7 +50,7 @@ void main() {
   // Texto que só existe na primeira tela de cada jogo.
   final games = <String, Finder>{
     'Caça-Palavras': find.textContaining('Caça-Palavras • Nível 1'),
-    'Sudoku': find.text('Selecione a dificuldade'),
+    'Sudoku': find.text('Dificuldade'),
     '2048': find.text('Novo jogo'),
     'Jogo da Velha': find.text('Jogo da Velha'),
     'Jogo da Forca': find.textContaining('Jogo da Forca  •  Nível 1'),
@@ -84,26 +84,21 @@ void main() {
     });
   }
 
-  testWidgets('Sudoku: "voltar" na partida confirma, volta à dificuldade e depois ao menu',
-      (tester) async {
+  testWidgets('Sudoku: "voltar" na partida confirma e volta ao menu', (tester) async {
     await tester.pumpWidget(const BrincakiApp());
     await tester.pumpAndSettle();
     await openGame(tester, 'Sudoku');
 
-    await tester.tap(find.text('Fácil'));
+    await tester.tap(find.text('Jogar!'));
     await pumpSteps(tester);
-    expect(find.text('Selecione a dificuldade'), findsNothing);
+    expect(find.text('Dificuldade'), findsNothing);
 
     await tester.binding.handlePopRoute();
     await pumpSteps(tester);
-    expect(find.text('Sair do Jogo'), findsOneWidget);
+    expect(find.text('Sair do jogo?'), findsOneWidget);
 
     await tester.tap(find.text('Sair'));
     await pumpSteps(tester);
-    expect(find.text('Selecione a dificuldade'), findsOneWidget);
-
-    await tester.binding.handlePopRoute();
-    await tester.pumpAndSettle();
     expect(find.text(_menuSubtitle), findsOneWidget);
   });
 }

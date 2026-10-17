@@ -1,6 +1,9 @@
+// lib/games/sudoku/widgets/sudoku_grid.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../widgets/game_palette.dart';
 import '../providers/game_provider.dart';
 import 'sudoku_cell_widget.dart';
 
@@ -9,7 +12,7 @@ class SudokuGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<GameProvider>(
+    return Consumer<SudokuProvider>(
       builder: (context, provider, child) {
         final board = provider.board;
         if (board == null) return const SizedBox.shrink();
@@ -23,12 +26,16 @@ class SudokuGrid extends StatelessWidget {
           selectedValue = 0;
         }
 
+        final thick = kSudokuPalette.dark;
+        final thin = kSudokuPalette.accent.withValues(alpha: 0.3);
+
         return AspectRatio(
           aspectRatio: 1,
           child: Container(
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.white, width: 2),
-              borderRadius: BorderRadius.circular(4),
+              color: Colors.white,
+              border: Border.all(color: thick, width: 2),
+              borderRadius: BorderRadius.circular(6),
             ),
             child: Column(
               children: List.generate(9, (row) {
@@ -36,29 +43,32 @@ class SudokuGrid extends StatelessWidget {
                   child: Row(
                     children: List.generate(9, (col) {
                       final cell = board.getCell(row, col);
-                      final isSelected =
-                          row == provider.selectedRow && col == provider.selectedCol;
-                      final isHighlighted = row == provider.selectedRow ||
+                      final isSelected = row == provider.selectedRow && col == provider.selectedCol;
+                      final isHighlighted =
+                          row == provider.selectedRow ||
                           col == provider.selectedCol ||
                           _sameBox(row, col, provider.selectedRow, provider.selectedCol);
                       final isSameNumber = selectedValue != 0 && cell.value == selectedValue;
+                      final boxRight = (col + 1) % 3 == 0 && col != 8;
+                      final boxBottom = (row + 1) % 3 == 0 && row != 8;
 
                       return Expanded(
                         child: Container(
+                          key: Key('cell-$row-$col'),
                           decoration: BoxDecoration(
                             border: Border(
-                              right: BorderSide(
-                                color: (col + 1) % 3 == 0 && col != 8
-                                    ? Colors.white
-                                    : Colors.grey.shade700,
-                                width: (col + 1) % 3 == 0 && col != 8 ? 2 : 1,
-                              ),
-                              bottom: BorderSide(
-                                color: (row + 1) % 3 == 0 && row != 8
-                                    ? Colors.white
-                                    : Colors.grey.shade700,
-                                width: (row + 1) % 3 == 0 && row != 8 ? 2 : 1,
-                              ),
+                              right: col == 8
+                                  ? BorderSide.none
+                                  : BorderSide(
+                                      color: boxRight ? thick : thin,
+                                      width: boxRight ? 2 : 1,
+                                    ),
+                              bottom: row == 8
+                                  ? BorderSide.none
+                                  : BorderSide(
+                                      color: boxBottom ? thick : thin,
+                                      width: boxBottom ? 2 : 1,
+                                    ),
                             ),
                           ),
                           child: SudokuCellWidget(

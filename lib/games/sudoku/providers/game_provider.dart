@@ -1,35 +1,49 @@
+// lib/games/sudoku/providers/game_provider.dart
+
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 
 import '../models/difficulty.dart';
+import '../models/game_state.dart';
 import '../models/sudoku_board.dart';
 import '../services/sudoku_generator.dart';
 
-class GameProvider extends ChangeNotifier {
-  final _generator = SudokuGenerator();
+/// Dicas por partida.
+const kSudokuHints = 3;
 
+class SudokuProvider extends ChangeNotifier {
+  SudokuProvider({Random? random}) : _generator = SudokuGenerator(random: random);
+
+  final SudokuGenerator _generator;
+
+  SudokuPhase _phase = SudokuPhase.setup;
   SudokuBoard? _board;
   Difficulty _difficulty = Difficulty.easy;
   int? _selectedRow;
   int? _selectedCol;
-  int _hintsRemaining = 3;
+  int _hintsRemaining = kSudokuHints;
   int _elapsedSeconds = 0;
   Timer? _timer;
-  bool _isComplete = false;
   bool _numberFirstMode = false;
   int? _selectedNumber;
 
+  SudokuPhase get phase => _phase;
   SudokuBoard? get board => _board;
   Difficulty get difficulty => _difficulty;
   int? get selectedRow => _selectedRow;
   int? get selectedCol => _selectedCol;
   int get hintsRemaining => _hintsRemaining;
   int get elapsedSeconds => _elapsedSeconds;
-  bool get isComplete => _isComplete;
+  bool get isComplete => _phase == SudokuPhase.solved;
+  bool get isPlaying => _phase == SudokuPhase.playing;
   bool get hasSelection => _selectedRow != null && _selectedCol != null;
   bool get numberFirstMode => _numberFirstMode;
   int? get selectedNumber => _selectedNumber;
+
+  /// O cronômetro está contando.
+  bool get timerRunning => _timer?.isActive ?? false;
 
   String get formattedTime {
     final minutes = _elapsedSeconds ~/ 60;
@@ -37,12 +51,14 @@ class GameProvider extends ChangeNotifier {
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
+  /// Quantas vezes [number] ainda falta aparecer no tabuleiro.
   int getRemainingCount(int number) {
-    if (_board == null) return 9;
+    final board = _board;
+    if (board == null) return 9;
     int count = 0;
     for (int r = 0; r < 9; r++) {
       for (int c = 0; c < 9; c++) {
-        if (_board!.getCell(r, c).value == number) count++;
+        if (board.getCell(r, c).value == number) count++;
       }
     }
     return 9 - count;
@@ -50,49 +66,42 @@ class GameProvider extends ChangeNotifier {
 
   bool isNumberComplete(int number) => getRemainingCount(number) == 0;
 
-  void startGame(Difficulty difficulty) {
+  /// Começa uma partida na [difficulty] escolhida na tela de início.
+  void start(Difficulty difficulty) {
+    if (_phase != SudokuPhase.setup) return;
+    _newBoard(difficulty);
+  }
+
+  /// Nova partida na mesma dificuldade ("Jogar de novo" / "Novo jogo").
+  void newGame() {
+    if (_phase == SudokuPhase.setup) return;
+    _newBoard(_difficulty);
+  }
+
+  /// Volta à escolha de dificuldade.
+  void exitToSetup() {
+    if (_phase == SudokuPhase.setup) return;
+    _timer?.cancel();
+    _phase = SudokuPhase.setup;
+    _board = null;
+    _clearSelection();
+    notifyListeners();
+  }
+
+  void _newBoard(Difficulty difficulty) {
     _difficulty = difficulty;
     _board = _generator.generate(difficulty);
-    _selectedRow = null;
-    _selectedCol = null;
-    _selectedNumber = null;
-    _hintsRemaining = 3;
+    _phase = SudokuPhase.playing;
+    _clearSelection();
+    _hintsRemaining = kSudokuHints;
     _elapsedSeconds = 0;
-    _isComplete = false;
     _startTimer();
     notifyListeners();
   }
 
-  void toggleInputMode() {
-    _numberFirstMode = !_numberFirstMode;
-    _selectedNumber = null;
+  void _clearSelection() {
     _selectedRow = null;
     _selectedCol = null;
-    notifyListeners();
-  }
-
-  void selectNumber(int number) {
-    if (_isComplete) return;
-
-    if (_numberFirstMode) {
-      _selectedNumber = _selectedNumber == number ? null : number;
-      notifyListeners();
-    } else {
-      enterNumber(number);
-    }
-  }
-
-  void _selectNextAvailableNumber() {
-    if (!_numberFirstMode) return;
-
-    // Encontrar o próximo número disponível
-    for (int i = 1; i <= 9; i++) {
-      if (!isNumberComplete(i)) {
-        _selectedNumber = i;
-        return;
-      }
-    }
-    // Se todos os números estão completos, desselecionar
     _selectedNumber = null;
   }
 
@@ -104,21 +113,37 @@ class GameProvider extends ChangeNotifier {
     });
   }
 
+  /// Alterna entre escolher a casa primeiro e escolher o número primeiro.
+  void toggleInputMode() {
+    if (_phase != SudokuPhase.playing) return;
+    _numberFirstMode = !_numberFirstMode;
+    _clearSelection();
+    notifyListeners();
+  }
+
+  /// Toque no teclado: no modo número-primeiro escolhe (ou solta) o número;
+  /// no modo célula-primeiro escreve na casa selecionada.
+  void selectNumber(int number) {
+    if (_phase != SudokuPhase.playing) return;
+
+    if (_numberFirstMode) {
+      _selectedNumber = _selectedNumber == number ? null : number;
+      notifyListeners();
+    } else {
+      enterNumber(number);
+    }
+  }
+
+  /// Toque numa casa: seleciona e, no modo número-primeiro com um número
+  /// escolhido, já escreve nela.
   void selectCell(int row, int col) {
-    if (_isComplete) return;
+    if (_phase != SudokuPhase.playing) return;
 
-    if (_numberFirstMode && _selectedNumber != null) {
-      final cell = _board!.getCell(row, col);
-      if (!cell.isFixed) {
-        _board = _board!.setCell(row, col, _selectedNumber!);
-
-        if (_board!.isComplete) {
-          _isComplete = true;
-          _timer?.cancel();
-        } else if (isNumberComplete(_selectedNumber!)) {
-          // Se o número atual foi completado, selecionar o próximo disponível
-          _selectNextAvailableNumber();
-        }
+    final number = _selectedNumber;
+    if (_numberFirstMode && number != null && !_board!.getCell(row, col).isFixed) {
+      _board = _board!.setCell(row, col, number);
+      if (!_checkSolved() && isNumberComplete(number)) {
+        _selectNextAvailableNumber();
       }
     }
 
@@ -127,39 +152,42 @@ class GameProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void enterNumber(int number) {
-    if (_board == null || !hasSelection || _isComplete) return;
+  void _selectNextAvailableNumber() {
+    _selectedNumber = null;
+    for (int i = 1; i <= 9; i++) {
+      if (!isNumberComplete(i)) {
+        _selectedNumber = i;
+        return;
+      }
+    }
+  }
 
-    final cell = _board!.getCell(_selectedRow!, _selectedCol!);
-    if (cell.isFixed) return;
+  /// Escreve [number] na casa selecionada (modo célula-primeiro).
+  void enterNumber(int number) {
+    if (_phase != SudokuPhase.playing || !hasSelection) return;
+    if (_board!.getCell(_selectedRow!, _selectedCol!).isFixed) return;
 
     _board = _board!.setCell(_selectedRow!, _selectedCol!, number);
+    _checkSolved();
 
-    if (_board!.isComplete) {
-      _isComplete = true;
-      _timer?.cancel();
-    }
-
-    // Desselecionar célula após inserir número no modo célula
+    // Depois de escrever, a casa é solta.
     _selectedRow = null;
     _selectedCol = null;
-
     notifyListeners();
   }
 
+  /// Apaga a casa selecionada.
   void clearCell() {
-    if (_board == null || !hasSelection || _isComplete) return;
-
-    final cell = _board!.getCell(_selectedRow!, _selectedCol!);
-    if (cell.isFixed) return;
+    if (_phase != SudokuPhase.playing || !hasSelection) return;
+    if (_board!.getCell(_selectedRow!, _selectedCol!).isFixed) return;
 
     _board = _board!.setCell(_selectedRow!, _selectedCol!, 0);
-    _board = _board!.revalidateAll();
     notifyListeners();
   }
 
+  /// Preenche a casa selecionada (vazia) com o número certo.
   void useHint() {
-    if (_board == null || !hasSelection || _hintsRemaining <= 0 || _isComplete) return;
+    if (_phase != SudokuPhase.playing || !hasSelection || _hintsRemaining <= 0) return;
 
     final cell = _board!.getCell(_selectedRow!, _selectedCol!);
     if (cell.isFixed || !cell.isEmpty) return;
@@ -167,17 +195,16 @@ class GameProvider extends ChangeNotifier {
     final hint = _board!.getHint(_selectedRow!, _selectedCol!);
     _board = _board!.setCell(_selectedRow!, _selectedCol!, hint);
     _hintsRemaining--;
-
-    if (_board!.isComplete) {
-      _isComplete = true;
-      _timer?.cancel();
-    }
-
+    _checkSolved();
     notifyListeners();
   }
 
-  void newGame() {
-    startGame(_difficulty);
+  /// Passa para "resolvido" e para o cronômetro quando o tabuleiro fecha.
+  bool _checkSolved() {
+    if (!_board!.isComplete) return false;
+    _phase = SudokuPhase.solved;
+    _timer?.cancel();
+    return true;
   }
 
   @override
