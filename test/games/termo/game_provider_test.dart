@@ -161,6 +161,26 @@ void main() {
     expect(p.keyboard['O'], LetterResult.present);
   });
 
+  test('letra verde aparece como na resposta, sem acento da tentativa', () async {
+    final onlyCasal = WordBank(
+      valid: {'CASAL': 'CASAL', 'AVIAO': 'AVIÃO'},
+      answers: ['CASAL'],
+    );
+    final p = TermoProvider(
+      bank: Future.value(onlyCasal),
+      store: MemoryDailyStore(),
+      now: () => day1,
+      random: Random(1),
+    );
+    while (p.loading) {
+      await Future<void>.delayed(Duration.zero);
+    }
+    typeWord(p, 'AVIAO'); // o A da posição 4 é verde: CASAL não tem Ã
+    p.submit();
+    expect(p.resultsFor('AVIAO')[3], LetterResult.correct);
+    expect(p.shown('AVIAO'), 'AVIAO');
+  });
+
   test('reabrir no mesmo dia restaura as tentativas', () async {
     final store = MemoryDailyStore();
     final first = await ready(store: store);

@@ -41,7 +41,7 @@ class GuessGrid extends StatelessWidget {
   Widget _row(TermoProvider p, int row) {
     if (row < p.guesses.length) {
       final guess = p.guesses[row];
-      final shown = p.display(guess);
+      final shown = p.shown(guess);
       final results = p.resultsFor(guess);
       return Row(
         children: [

@@ -72,6 +72,18 @@ class TermoProvider extends ChangeNotifier {
 
   String display(String normal) => _bank?.display(normal) ?? normal;
 
+  /// Como uma tentativa aparece na grade: letra verde copia a resposta, para
+  /// não mostrar um acento que a palavra do dia não tem.
+  String shown(String guess) {
+    final letters = display(guess).split('');
+    final answer = answerDisplay;
+    final results = resultsFor(guess);
+    for (var i = 0; i < letters.length; i++) {
+      if (results[i] == LetterResult.correct) letters[i] = answer[i];
+    }
+    return letters.join();
+  }
+
   List<LetterResult> resultsFor(String guess) => evaluateGuess(guess, _answer);
 
   void type(String letter) {
