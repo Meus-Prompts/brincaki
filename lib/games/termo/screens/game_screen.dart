@@ -5,13 +5,13 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import '../../../widgets/game_palette.dart';
+import '../../../widgets/game_scaffold.dart';
+import '../../../widgets/result_panel.dart';
 import '../models/game_state.dart';
 import '../providers/game_provider.dart';
 import '../widgets/guess_grid.dart';
 import '../widgets/termo_keyboard.dart';
-
-const _background = Color(0xFFF0FDFA);
-const _dark = Color(0xFF0F766E);
 
 class TermoScreen extends StatefulWidget {
   const TermoScreen({super.key});
@@ -44,127 +44,82 @@ class _TermoScreenState extends State<TermoScreen> {
   @override
   Widget build(BuildContext context) {
     final p = context.watch<TermoProvider>();
+    final ended = !p.loading && p.phase != TermoPhase.playing;
 
     return Focus(
       autofocus: true,
       onKeyEvent: _onKey,
-      child: Scaffold(
-        backgroundColor: _background,
-        appBar: AppBar(
-          backgroundColor: _background,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: _dark),
-            tooltip: 'Voltar ao menu',
-            onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-          ),
-          title: Text(
-            'Termo',
-            style: GoogleFonts.fredoka(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: _dark,
-            ),
-          ),
-        ),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-            child: Column(
-              children: [
-                SegmentedButton<TermoMode>(
-                  showSelectedIcon: false,
-                  segments: const [
-                    ButtonSegment(value: TermoMode.daily, label: Text('Palavra do dia')),
-                    ButtonSegment(value: TermoMode.unlimited, label: Text('Ilimitado')),
-                  ],
-                  selected: {p.mode},
-                  onSelectionChanged: (s) => p.setMode(s.first),
-                ),
-                // Aviso no topo: não cobre o teclado. Some ao digitar de novo.
-                SizedBox(
-                  height: 32,
-                  child: Center(
-                    child: p.lastError == null
-                        ? null
-                        : Text(
-                            p.lastError!,
-                            key: ValueKey('erro-${p.shakeCount}'),
-                            style: GoogleFonts.fredoka(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFFB91C1C),
-                            ),
+      child: GameScaffold(
+        palette: kTermoPalette,
+        title: 'Termo',
+        body: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+          child: Column(
+            children: [
+              SegmentedButton<TermoMode>(
+                showSelectedIcon: false,
+                segments: const [
+                  ButtonSegment(value: TermoMode.daily, label: Text('Palavra do dia')),
+                  ButtonSegment(value: TermoMode.unlimited, label: Text('Ilimitado')),
+                ],
+                selected: {p.mode},
+                onSelectionChanged: (s) => p.setMode(s.first),
+              ),
+              // Aviso no topo: não cobre o teclado. Some ao digitar de novo.
+              SizedBox(
+                height: 32,
+                child: Center(
+                  child: p.lastError == null
+                      ? null
+                      : Text(
+                          p.lastError!,
+                          key: ValueKey('erro-${p.shakeCount}'),
+                          style: GoogleFonts.fredoka(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFFB91C1C),
                           ),
-                  ),
+                        ),
                 ),
-                Expanded(
-                  child: Center(
-                    child: p.loading
-                        ? Text(
-                            'Carregando palavras...',
-                            style: GoogleFonts.fredoka(fontSize: 16, color: _dark),
-                          )
-                        : const GuessGrid(),
-                  ),
+              ),
+              Expanded(
+                child: Center(
+                  child: p.loading
+                      ? Text(
+                          'Carregando palavras...',
+                          style: GoogleFonts.fredoka(
+                            fontSize: 16,
+                            color: kTermoPalette.dark,
+                          ),
+                        )
+                      : const GuessGrid(),
                 ),
-                if (!p.loading && p.phase != TermoPhase.playing) const _EndPanel(),
+              ),
+              // Com a partida terminada, o painel de resultado fica no lugar
+              // do teclado.
+              if (!p.loading && !ended) ...[
                 const SizedBox(height: 8),
-                if (!p.loading) const TermoKeyboard(),
+                const TermoKeyboard(),
               ],
-            ),
+            ],
           ),
         ),
+        result: ended ? _result(p) : null,
       ),
     );
   }
-}
 
-class _EndPanel extends StatelessWidget {
-  const _EndPanel();
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.watch<TermoProvider>();
+  Widget _result(TermoProvider p) {
     final won = p.phase == TermoPhase.won;
-
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _dark.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            won ? '🎉 Acertou em ${p.guesses.length}!' : 'A palavra era: ${p.answerDisplay}',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.fredoka(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: _dark,
-            ),
-          ),
-          const SizedBox(height: 6),
-          if (p.mode == TermoMode.daily)
-            Text(
-              'Volte amanhã para a próxima palavra!',
-              style: GoogleFonts.fredoka(fontSize: 14, color: Colors.black54),
-            )
-          else
-            ElevatedButton(
-              onPressed: p.newUnlimited,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _dark,
-                foregroundColor: Colors.white,
-              ),
-              child: Text('Nova palavra', style: GoogleFonts.fredoka(fontSize: 16)),
-            ),
-        ],
-      ),
+    final daily = p.mode == TermoMode.daily;
+    return ResultPanel(
+      palette: kTermoPalette,
+      emoji: won ? '🎉' : '😢',
+      title: won ? 'Acertou em ${p.guesses.length}!' : 'A palavra era: ${p.answerDisplay}',
+      message: daily ? 'Volte amanhã para a próxima palavra!' : null,
+      actions: [
+        if (!daily) ResultAction('Nova palavra', p.newUnlimited),
+      ],
     );
   }
 }
