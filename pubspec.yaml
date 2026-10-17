@@ -50,6 +50,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -97,3 +98,20 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Ícone do app. Fontes em assets/icon/*.svg; para regenerar, renderizar em
+# 1024x1024: icon.png (bg + fg em escala 1.2), fg.png (só fg, escala 1.3, fundo
+# transparente) e bg.png (só bg). Depois rodar `dart run flutter_launcher_icons`
+# e descartar a alteração que ele faz em ios/Runner.xcodeproj/project.pbxproj.
+flutter_launcher_icons:
+  image_path: "assets/icon/icon.png"
+  android: "ic_launcher"
+  adaptive_icon_background: "assets/icon/bg.png"
+  adaptive_icon_foreground: "assets/icon/fg.png"
+  ios: true
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    background_color: "#8B5CF6"
+    theme_color: "#8B5CF6"
