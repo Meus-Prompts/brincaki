@@ -84,7 +84,6 @@ class Game2048Provider extends ChangeNotifier {
     _phase = Game2048Phase.playing;
     notifyListeners();
   }
-
   void _resetBoard() {
     _board = List.generate(size, (_) => List.filled(size, 0));
     _score = 0;
@@ -108,8 +107,14 @@ class Game2048Provider extends ChangeNotifier {
     return (r, c);
   }
 
+  /// Lê o recorde salvo. Se a leitura falhar, segue com o recorde atual.
   Future<void> _loadBest() async {
-    final saved = await _store.load();
+    final int saved;
+    try {
+      saved = await _store.load();
+    } catch (_) {
+      return;
+    }
     if (_disposed || saved <= _best) return;
     _best = saved;
     notifyListeners();

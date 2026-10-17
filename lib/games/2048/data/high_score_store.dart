@@ -10,10 +10,12 @@ abstract class HighScoreStore {
 class SharedPrefsHighScoreStore implements HighScoreStore {
   static const _key = 'game2048_best';
 
+  /// Valor ausente, de outro tipo ou negativo vale 0.
   @override
   Future<int> load() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_key) ?? 0;
+    final value = prefs.get(_key);
+    return value is int && value > 0 ? value : 0;
   }
 
   @override
