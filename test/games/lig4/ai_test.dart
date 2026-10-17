@@ -4,10 +4,24 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:brincaki/games/lig4/logic/ai.dart';
+import 'package:brincaki/games/lig4/logic/board.dart';
 
 List<List<int>> board(List<String> rows) => [
       for (final r in rows) [for (final ch in r.split('')) ch == '.' ? 0 : int.parse(ch)],
     ];
+
+/// Joga uma partida inteira entre dois níveis (jogador 1 começa) e devolve o
+/// vencedor, ou null no empate.
+int? playOut(Map<int, AiLevel> levels, Random random) {
+  var b = emptyBoard();
+  var player = 1;
+  while (!isFull(b)) {
+    b = drop(b, chooseColumn(b, player, levels[player]!, random), player);
+    if (hasLine(b, player)) return player;
+    player = 3 - player;
+  }
+  return null;
+}
 
 void main() {
   // 1 tem três na linha de baixo e é a vez de 1.
@@ -87,6 +101,94 @@ void main() {
         chooseColumn(mustBlock, 1, AiLevel.easy, Random(seed)),
     };
     expect(choices.length, greaterThan(1));
+  });
+
+  test('fácil às vezes aproveita a vitória e às vezes não', () {
+    final choices = [
+      for (var seed = 0; seed < 40; seed++)
+        chooseColumn(winNow, 1, AiLevel.easy, Random(seed)),
+    ];
+    expect(choices, contains(3));
+    expect(choices.where((c) => c != 3), isNotEmpty);
+  });
+
+  test('médio prefere vencer a bloquear', () {
+    // 1 pode vencer na coluna 3 e 2 ameaça vencer na coluna 6.
+    final winOrBlock = board([
+      '.......', '.......', '.......', '......2', '......2', '111...2',
+    ]);
+    for (var seed = 0; seed < 20; seed++) {
+      expect(chooseColumn(winOrBlock, 1, AiLevel.medium, Random(seed)), 3);
+    }
+  });
+
+  test('médio sem jogada segura ainda escolhe uma coluna válida', () {
+    // Qualquer jogada de 1 deixa 2 vencer em cima dela (colunas 0 e 1).
+    final noSafe = board([
+      '..21122', '..11121', '..22211', '..11222', '.222112', '.211122',
+    ]);
+    for (var seed = 0; seed < 20; seed++) {
+      expect(chooseColumn(noSafe, 1, AiLevel.medium, Random(seed)), anyOf(0, 1));
+    }
+  });
+
+  test('médio prefere o centro quando não há ameaça', () {
+    final counts = List.filled(7, 0);
+    for (var seed = 0; seed < 200; seed++) {
+      counts[chooseColumn(emptyBoard(), 1, AiLevel.medium, Random(seed))]++;
+    }
+    expect(counts[3], greaterThan(counts[0]));
+    expect(counts[3], greaterThan(counts[6]));
+  });
+
+  test('difícil sempre vence quando pode e sempre bloqueia', () {
+    for (var seed = 0; seed < 5; seed++) {
+      expect(chooseColumn(winNow, 1, AiLevel.hard, Random(seed)), 3);
+      expect(chooseColumn(mustBlock, 1, AiLevel.hard, Random(seed)), 3);
+    }
+  });
+
+  test('difícil joga na única coluna livre', () {
+    final oneLeft = board([
+      '121212.', '2121212', '1212121', '1212121', '2121212', '1212121',
+    ]);
+    expect(chooseColumn(oneLeft, 2, AiLevel.hard, Random(0)), 6);
+  });
+
+  test('chooseColumnInIsolate dá o mesmo resultado com a mesma semente', () {
+    for (final level in AiLevel.values) {
+      for (var seed = 0; seed < 5; seed++) {
+        expect(
+          chooseColumnInIsolate((trap, 2, level.index, seed)),
+          chooseColumn(trap, 2, level, Random(seed)),
+        );
+      }
+    }
+  });
+
+  test('difícil vence o fácil em partidas semeadas', () {
+    for (var seed = 0; seed < 4; seed++) {
+      // Alterna quem começa.
+      final hardIs = seed.isEven ? 1 : 2;
+      final winner = playOut(
+        {hardIs: AiLevel.hard, 3 - hardIs: AiLevel.easy},
+        Random(seed),
+      );
+      expect(winner, hardIs, reason: 'semente $seed');
+    }
+  });
+
+  test('médio vence o fácil na maioria das partidas semeadas', () {
+    var mediumWins = 0;
+    for (var seed = 0; seed < 10; seed++) {
+      final mediumIs = seed.isEven ? 1 : 2;
+      final winner = playOut(
+        {mediumIs: AiLevel.medium, 3 - mediumIs: AiLevel.easy},
+        Random(seed),
+      );
+      if (winner == mediumIs) mediumWins++;
+    }
+    expect(mediumWins, greaterThanOrEqualTo(7));
   });
 
   test('difícil decide em menos de 2 segundos no meio da partida', () {

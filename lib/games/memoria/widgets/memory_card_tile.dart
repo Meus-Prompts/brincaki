@@ -4,9 +4,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../../widgets/game_palette.dart';
 import '../models/game_state.dart';
-
-const kMemoryPurple = Color(0xFF8B5CF6);
 
 /// Carta que gira em Y ao virar: verso roxo com "?" e frente com o emoji.
 class MemoryCardTile extends StatelessWidget {
@@ -51,8 +50,8 @@ class _Back extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [kMemoryPurple, Color(0xFFA78BFA)],
+        gradient: LinearGradient(
+          colors: [kMemoriaPalette.accent, kMemoriaPalette.light],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
