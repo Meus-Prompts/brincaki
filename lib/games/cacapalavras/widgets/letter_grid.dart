@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import '../../../widgets/game_palette.dart';
 import '../providers/game_provider.dart';
 
 /// Cores das palavras encontradas, na ordem da lista de palavras.
@@ -19,7 +20,11 @@ const kFoundColors = [
   Color(0xFFA5F3FC),
 ];
 
-const _selectionColor = Color(0xFFFDE047);
+/// Seleção em andamento: âmbar claro, diferente das cores das encontradas.
+const _selectionColor = Color(0xFFFCD34D);
+
+/// Marrom bem escuro: lê bem sobre o branco e sobre todas as cores acima.
+const _letterColor = Color(0xFF451A03);
 
 class LetterGrid extends StatelessWidget {
   const LetterGrid({super.key});
@@ -70,7 +75,7 @@ class LetterGrid extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.deepPurple.withValues(alpha: 0.12),
+                    color: kCacaPalavrasPalette.accent.withValues(alpha: 0.18),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -130,7 +135,7 @@ class _LetterCell extends StatelessWidget {
         style: GoogleFonts.fredoka(
           fontSize: fontSize,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF3B0764),
+          color: _letterColor,
         ),
       ),
     );
