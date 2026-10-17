@@ -44,8 +44,8 @@ class ResultPanel extends StatelessWidget {
       ),
       child: Container(
         width: double.infinity,
-        margin: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -87,12 +87,16 @@ class ResultPanel extends StatelessWidget {
                 style: GoogleFonts.fredoka(fontSize: 16, color: Colors.black87),
               ),
             ],
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: [for (final action in actions) _button(action)],
+            const SizedBox(height: 10),
+            // Botões lado a lado, mesmo em telas estreitas: o painel fica
+            // baixo e sobra espaço para o tabuleiro.
+            Row(
+              children: [
+                for (var i = 0; i < actions.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 10),
+                  Expanded(child: _button(actions[i])),
+                ],
+              ],
             ),
           ],
         ),
@@ -101,23 +105,29 @@ class ResultPanel extends StatelessWidget {
   }
 
   Widget _button(ResultAction action) {
-    final label = Text(
-      action.label,
-      style: GoogleFonts.fredoka(fontSize: 16, fontWeight: FontWeight.w600),
+    final label = FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(
+        action.label,
+        maxLines: 1,
+        style: GoogleFonts.fredoka(fontSize: 16, fontWeight: FontWeight.w600),
+      ),
     );
+    const padding = EdgeInsets.symmetric(horizontal: 8, vertical: 10);
     if (action.primary) {
       return ElevatedButton(
         onPressed: action.onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: palette.accent,
           foregroundColor: Colors.white,
+          padding: padding,
         ),
         child: label,
       );
     }
     return OutlinedButton(
       onPressed: action.onPressed,
-      style: OutlinedButton.styleFrom(foregroundColor: palette.dark),
+      style: OutlinedButton.styleFrom(foregroundColor: palette.dark, padding: padding),
       child: label,
     );
   }

@@ -88,4 +88,29 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.widget<Opacity>(opacity).opacity, 1);
   });
+
+  testWidgets('em 320 px os dois botões ficam na mesma linha, sem overflow',
+      (tester) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pumpPanel(
+      tester,
+      ResultPanel(
+        palette: kMemoriaPalette,
+        emoji: '🏆',
+        title: 'Um nome bem comprido venceu!',
+        message: 'Vitórias: 3 × 2',
+        actions: [
+          ResultAction('Próximo nível', () {}),
+          ResultAction('Trocar jogadores', () {}, primary: false),
+        ],
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    final a = tester.getCenter(find.text('Próximo nível'));
+    final b = tester.getCenter(find.text('Trocar jogadores'));
+    expect(a.dy, moreOrLessEquals(b.dy, epsilon: 0.5));
+    expect(tester.getSize(find.byType(ResultPanel)).height, lessThan(200));
+  });
 }
