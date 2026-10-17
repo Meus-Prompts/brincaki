@@ -10,19 +10,18 @@ import '../services/grid_generator.dart';
 import '../services/selection.dart';
 
 class WordSearchProvider extends ChangeNotifier {
-  WordSearchProvider({Random? random}) : _random = random ?? Random() {
-    _generate();
-  }
+  /// [random] só para testes: deixa a grade previsível.
+  WordSearchProvider({Random? random}) : _random = random ?? Random();
 
   final Random _random;
 
   int _level = 1;
-  late List<List<String>> _grid;
-  late List<PlacedWord> _words;
+  List<List<String>> _grid = const [];
+  List<PlacedWord> _words = const [];
   final Set<String> _found = {};
   (int, int)? _selectionStart;
   (int, int)? _selectionEnd;
-  WordSearchPhase _phase = WordSearchPhase.playing;
+  WordSearchPhase _phase = WordSearchPhase.setup;
 
   int get level => _level;
   LevelConfig get config => kLevels[_level - 1];
@@ -39,6 +38,27 @@ class WordSearchProvider extends ChangeNotifier {
     return snapLine(start, end, config.size);
   }
 
+  /// Começa uma partida no nível [level] (de 1 a 10), saindo da tela de início.
+  void start(int level) {
+    if (_phase != WordSearchPhase.setup) return;
+    if (level < 1 || level > kLevels.length) return;
+    _level = level;
+    _generate();
+    notifyListeners();
+  }
+
+  /// Volta para a tela de início, onde dá para escolher outro nível.
+  void exitToSetup() {
+    if (_phase == WordSearchPhase.setup) return;
+    _phase = WordSearchPhase.setup;
+    _grid = const [];
+    _words = const [];
+    _found.clear();
+    _selectionStart = null;
+    _selectionEnd = null;
+    notifyListeners();
+  }
+
   void startSelection(int row, int col) {
     if (_phase != WordSearchPhase.playing) return;
     _selectionStart = (row, col);
@@ -47,12 +67,14 @@ class WordSearchProvider extends ChangeNotifier {
   }
 
   void updateSelection(int row, int col) {
+    if (_phase != WordSearchPhase.playing) return;
     if (_selectionStart == null || _selectionEnd == (row, col)) return;
     _selectionEnd = (row, col);
     notifyListeners();
   }
 
   void endSelection() {
+    if (_phase != WordSearchPhase.playing || _selectionStart == null) return;
     final cells = selectedCells;
     _selectionStart = null;
     _selectionEnd = null;

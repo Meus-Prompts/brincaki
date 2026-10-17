@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import '../games/cacapalavras/screens/home_screen.dart' as cacapalavras;
+import '../games/cacapalavras/screens/game_screen.dart';
+import '../games/cacapalavras/providers/game_provider.dart' as cacapalavras;
 import '../games/sudoku/screens/home_screen.dart' as sudoku;
 import '../games/sudoku/providers/game_provider.dart';
 import '../games/2048/screens/game_screen.dart';
@@ -31,8 +32,12 @@ class MenuScreen extends StatelessWidget {
     _openGame(
       context,
       GameShell(
+        wrapProvider: (child) => ChangeNotifierProvider(
+          create: (_) => cacapalavras.WordSearchProvider(),
+          child: child,
+        ),
         theme: kCacaPalavrasPalette.theme,
-        home: (_) => const cacapalavras.HomeScreen(),
+        home: (_) => const CacaPalavrasScreen(),
       ),
     );
   }

@@ -1,6 +1,6 @@
 // lib/games/cacapalavras/models/game_state.dart
 
-enum WordSearchPhase { playing, won }
+enum WordSearchPhase { setup, playing, won }
 
 enum Direction {
   right(0, 1),

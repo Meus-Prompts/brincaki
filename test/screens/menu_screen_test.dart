@@ -49,7 +49,7 @@ void main() {
 
   // Texto que só existe na primeira tela de cada jogo.
   final games = <String, Finder>{
-    'Caça-Palavras': find.textContaining('Caça-Palavras • Nível 1'),
+    'Caça-Palavras': find.text('1 • Animais'),
     'Sudoku': find.text('Selecione a dificuldade'),
     '2048': find.text('Novo jogo'),
     'Jogo da Velha': find.text('Jogo da Velha'),
