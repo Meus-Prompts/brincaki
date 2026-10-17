@@ -118,7 +118,10 @@ class _TermoScreenState extends State<TermoScreen> {
       title: won ? 'Acertou em ${p.guesses.length}!' : 'A palavra era: ${p.answerDisplay}',
       message: daily ? 'Volte amanhã para a próxima palavra!' : null,
       actions: [
-        if (!daily) ResultAction('Nova palavra', p.newUnlimited),
+        if (daily)
+          ResultAction('Jogar ilimitado', () => p.setMode(TermoMode.unlimited))
+        else
+          ResultAction('Nova palavra', p.newUnlimited),
       ],
     );
   }

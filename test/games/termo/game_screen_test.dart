@@ -221,8 +221,9 @@ void main() {
         expect(_inPanel('Acertou em 2!'), findsOneWidget);
         expect(_inPanel('Volte amanhã para a próxima palavra!'), findsOneWidget);
         expect(find.byType(TermoKeyboard), findsNothing);
-        // A palavra do dia não tem botão de nova palavra.
+        // A palavra do dia não sorteia outra: oferece o modo ilimitado.
         expect(find.text('Nova palavra'), findsNothing);
+        expect(_inPanel('Jogar ilimitado'), findsOneWidget);
         expect(tester.takeException(), isNull);
         expect(tester.getRect(find.byType(ResultPanel)).bottom, lessThanOrEqualTo(size.height));
       });
@@ -235,6 +236,19 @@ void main() {
         expect(_inPanel('Volte amanhã para a próxima palavra!'), findsOneWidget);
         expect(find.byType(TermoKeyboard), findsNothing);
         expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('Jogar ilimitado no resultado troca de modo com nova palavra',
+          (tester) async {
+        final p = await pumpGame(tester, size: size);
+        await tapWord(tester, p.answer);
+        await tester.tap(_inPanel('Jogar ilimitado'));
+        await settle(tester);
+        expect(p.mode, TermoMode.unlimited);
+        expect(p.phase, TermoPhase.playing);
+        expect(p.guesses, isEmpty);
+        expect(find.byType(ResultPanel), findsNothing);
+        expect(find.byType(TermoKeyboard), findsOneWidget);
       });
 
       testWidgets('trocar para ilimitado e voltar restaura o dia terminado',
