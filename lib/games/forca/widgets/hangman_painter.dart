@@ -127,10 +127,10 @@ class _HangmanPainter extends CustomPainter {
 
     // Função que retorna o progresso de uma parte específica
     double progressFor(int partIndex) {
-      if (wrongCount > partIndex) return 1.0; // já desenhada completamente
       if (wrongCount == partIndex + 1 && prevWrongCount == partIndex) {
         return newPartProgress; // esta é a nova parte sendo animada
       }
+      if (wrongCount > partIndex) return 1.0; // já desenhada completamente
       return 0.0; // ainda não desenhada
     }
 
