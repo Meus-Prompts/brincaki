@@ -1,9 +1,11 @@
 // test/app_setup_test.dart
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:brincaki/main.dart' as app;
 import 'package:brincaki/main.dart';
 
 void main() {
@@ -56,5 +58,19 @@ void main() {
       licenses.any((l) => l.packages.contains('fserb/pt-br')),
       isTrue,
     );
+  });
+
+  testWidgets('main abre o app no menu', (tester) async {
+    tester.binding.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, (call) async => null);
+    addTearDown(() => tester.binding.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, null));
+
+    await tester.runAsync(app.main);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MaterialApp), findsOneWidget);
+    expect(find.text('Brincaki'), findsOneWidget);
+    expect(find.text('Escolha um jogo para brincar!'), findsOneWidget);
   });
 }
