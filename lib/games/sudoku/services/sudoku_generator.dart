@@ -1,3 +1,5 @@
+// lib/games/sudoku/services/sudoku_generator.dart
+
 import 'dart:math';
 
 import '../models/difficulty.dart';
@@ -5,8 +7,12 @@ import '../models/sudoku_board.dart';
 import '../models/sudoku_cell.dart';
 import 'sudoku_solver.dart';
 
+/// Gera partidas: sorteia um tabuleiro completo e esvazia de
+/// `minEmpty` a `maxEmpty` casas, conforme a dificuldade.
 class SudokuGenerator {
-  final _random = Random();
+  SudokuGenerator({Random? random}) : _random = random ?? Random();
+
+  final Random _random;
   final _solver = SudokuSolver();
 
   SudokuBoard generate(Difficulty difficulty) {
@@ -18,10 +24,7 @@ class SudokuGenerator {
       final row = <SudokuCell>[];
       for (int c = 0; c < 9; c++) {
         final value = puzzle[r][c];
-        row.add(SudokuCell(
-          value: value,
-          isFixed: value != 0,
-        ));
+        row.add(SudokuCell(value: value, isFixed: value != 0));
       }
       cells.add(row);
     }
@@ -32,12 +35,12 @@ class SudokuGenerator {
   List<List<int>> _generateCompletedGrid() {
     final grid = List.generate(9, (_) => List.filled(9, 0));
 
-    // Fill diagonal 3x3 boxes first (they are independent)
+    // Os blocos da diagonal não se cruzam: dá para sorteá-los à vontade.
     for (int i = 0; i < 9; i += 3) {
       _fillBox(grid, i, i);
     }
 
-    // Solve the rest
+    // O resto sai do solver.
     _solver.solve(grid);
 
     return grid;
