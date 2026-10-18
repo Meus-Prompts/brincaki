@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:brincaki/games/xadrez/logic/ai.dart';
+import 'package:brincaki/games/xadrez/logic/game.dart';
 import 'package:brincaki/games/xadrez/logic/position.dart';
 import 'package:brincaki/games/xadrez/models/game_state.dart';
 
@@ -27,6 +28,21 @@ List<ChessPosition> randomPositions(int count, Random random) {
 }
 
 bool isMate(ChessPosition p) => p.legalMoves().isEmpty && p.inCheck;
+
+/// Joga a partida com o difícil de brancas e o fácil de pretas até o fim ou
+/// até [maxMoves] lances das brancas.
+ChessGame playOut(String fen, int seed, int maxMoves) {
+  var game = ChessGame.start(ChessPosition.fromFen(fen));
+  final random = Random(seed);
+  for (var ply = 0; ply < maxMoves * 2 && game.end == null; ply++) {
+    final p = game.position;
+    final level = p.turn == ChessSide.white ? AiLevel.hard : AiLevel.easy;
+    game = game.play(
+      chooseMove(p, level, random, budget: const Duration(milliseconds: 300)),
+    );
+  }
+  return game;
+}
 
 void main() {
   // Torre de a1 para a8 é mate no corredor.
@@ -121,6 +137,45 @@ void main() {
       watch.stop();
       expect(p.legalMoves(), contains(m));
       expect(watch.elapsed, lessThan(const Duration(seconds: 2)));
+    }
+  });
+
+  test('difícil prefere o mate mais rápido', () {
+    // Th8 é mate já; há vários mates em 2, mas o difícil escolhe o de 1.
+    final p = ChessPosition.fromFen('k7/8/1K6/8/8/8/8/7R w - - 0 1');
+    for (var seed = 0; seed < 3; seed++) {
+      final m = chooseMove(p, AiLevel.hard, Random(seed));
+      expect(m.uci, 'h1h8');
+    }
+  });
+
+  test('difícil com orçamento mínimo ainda responde rápido', () {
+    final p = ChessPosition.fromFen(kKiwipete);
+    final watch = Stopwatch()..start();
+    final m = chooseMove(
+      p,
+      AiLevel.hard,
+      Random(0),
+      budget: const Duration(microseconds: 1),
+    );
+    watch.stop();
+    expect(p.legalMoves(), contains(m));
+    expect(watch.elapsed, lessThan(const Duration(milliseconds: 300)));
+  });
+
+  test('difícil dá mate com dama e rei contra rei', () {
+    for (var seed = 0; seed < 2; seed++) {
+      final game = playOut('k7/8/2Q5/8/3K4/8/8/8 w - - 0 1', seed, 20);
+      expect(game.end, XadrezEnd.checkmate, reason: 'semente $seed');
+      expect(game.winner, ChessSide.white);
+    }
+  });
+
+  test('difícil promove e depois dá mate sem repetir', () {
+    for (var seed = 0; seed < 3; seed++) {
+      final game = playOut('k7/4P3/8/8/8/8/8/K7 w - - 0 1', seed, 30);
+      expect(game.end, XadrezEnd.checkmate, reason: 'semente $seed');
+      expect(game.winner, ChessSide.white);
     }
   });
 

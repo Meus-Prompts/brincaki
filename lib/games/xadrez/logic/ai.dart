@@ -13,11 +13,16 @@ const _mateScore = 1000000;
 // Não usar shift (1 << 40): no JavaScript ele dá 0 e quebra a busca na web.
 const _infinity = 1000000000;
 const _hardMaxDepth = 4;
+// No final, com poucas peças, a busca é barata e vai mais fundo, senão não
+// enxerga o mate (dama e rei contra rei precisam de uns 3 lances).
+const _hardEndgameMaxDepth = 6;
 // Quantos meios-lances a busca de quietude segue depois da profundidade.
 const _maxQuiescence = 6;
 // Abaixo deste material (sem peões nem reis, somando os dois lados) o rei
 // usa a tabela do final.
 const _endgameMaterial = 2600;
+// Vantagem de material a partir da qual o final vira "dar mate".
+const _mopUpAdvantage = 400;
 
 /// Lance escolhido pelo computador (quem joga em [p]) no nível pedido.
 /// Só promove para dama. No difícil, a busca para quando passa do [budget] e
@@ -46,7 +51,9 @@ int chooseMoveInIsolate((String, int, int) args) {
   final (fen, level, seed) = args;
   final p = ChessPosition.fromFen(fen);
   final move = chooseMove(p, AiLevel.values[level], Random(seed));
-  return p.legalMoves().indexOf(move);
+  final index = p.legalMoves().indexOf(move);
+  assert(index >= 0, 'chooseMove devolveu um lance fora da lista');
+  return index;
 }
 
 /// Lances legais sem as promoções para torre, bispo e cavalo.
@@ -139,6 +146,9 @@ class _Search {
   final int budgetMicros;
   final Stopwatch watch;
 
+  /// Chaves de repetição das posições do caminho atual da busca.
+  final path = <String>[];
+
   /// A profundidade 1 sempre termina, para ter um lance.
   bool canAbort = false;
   int nodes = 0;
@@ -158,15 +168,28 @@ class _Search {
     final moves = _candidates(p);
     // Levar mate mais tarde é menos ruim; dar mate mais cedo é melhor.
     if (moves.isEmpty) return p.inCheck ? -(_mateScore - ply) : 0;
-    _sort(p, moves);
-    var best = -_infinity;
-    for (final m in moves) {
-      final score = -negamax(p.play(m), depth - 1, ply + 1, -beta, -alpha);
-      if (score > best) best = score;
-      if (best > alpha) alpha = best;
-      if (alpha >= beta) break;
+    // Voltar a uma posição do caminho conta como empate, para quem está
+    // ganhando não ficar repetindo lances. Só depois de 4 meios-lances sem
+    // peão nem captura uma posição pode se repetir.
+    String? key;
+    if (p.halfmoveClock >= 4) {
+      key = p.repetitionKey;
+      if (path.contains(key)) return 0;
     }
-    return best;
+    path.add(key ?? '');
+    try {
+      _sort(p, moves);
+      var best = -_infinity;
+      for (final m in moves) {
+        final score = -negamax(p.play(m), depth - 1, ply + 1, -beta, -alpha);
+        if (score > best) best = score;
+        if (best > alpha) alpha = best;
+        if (alpha >= beta) break;
+      }
+      return best;
+    } finally {
+      path.removeLast();
+    }
   }
 
   /// Segue só as capturas (ou todas as saídas do xeque) até a posição ficar
@@ -206,17 +229,39 @@ void _sort(ChessPosition p, List<ChessMove> moves) {
   moves.sort((a, b) => scores[b]!.compareTo(scores[a]!));
 }
 
+/// Entre lances empatados na busca, fica com os que já melhoram a posição
+/// agora. Sem isso, num final ganho todos os caminhos dão a mesma nota e o rei
+/// fica andando para lá e para cá em vez de avançar.
+ChessMove _pickProgress(ChessPosition p, List<ChessMove> tied, Random random) {
+  if (tied.length == 1) return tied.single;
+  var best = -_infinity;
+  final bestMoves = <ChessMove>[];
+  for (final m in tied) {
+    final score = -_evaluate(p.play(m));
+    if (score > best) {
+      best = score;
+      bestMoves
+        ..clear()
+        ..add(m);
+    } else if (score == best) {
+      bestMoves.add(m);
+    }
+  }
+  return _pick(bestMoves, random);
+}
+
 ChessMove _hard(
   ChessPosition p,
   List<ChessMove> moves,
   Random random,
   Duration budget,
 ) {
-  final search = _Search(budget.inMicroseconds);
+  final search = _Search(budget.inMicroseconds)..path.add(p.repetitionKey);
   var order = List.of(moves);
   _sort(p, order);
   var result = order.first;
-  for (var depth = 1; depth <= _hardMaxDepth; depth++) {
+  final maxDepth = _isEndgame(p) ? _hardEndgameMaxDepth : _hardMaxDepth;
+  for (var depth = 1; depth <= maxDepth; depth++) {
     try {
       final scored = <(ChessMove, int)>[];
       var best = -_infinity;
@@ -232,7 +277,7 @@ ChessMove _hard(
         scored.add((m, score));
         if (score > best) best = score;
       }
-      result = _pick([
+      result = _pickProgress(p, [
         for (final (m, s) in scored)
           if (s == best) m,
       ], random);
@@ -336,20 +381,65 @@ int _evaluate(ChessPosition p) {
   final cells = p.cells;
   var white = 0;
   var pieces = 0;
+  // Material sem os reis de cada lado.
+  var whiteMaterial = 0;
+  var blackMaterial = 0;
   for (var i = 0; i < 64; i++) {
     final v = cells[i];
     if (v == 0) continue;
     final type = v.abs();
     if (type != kPawn && type != kKing) pieces += _values[type];
     if (type == kKing) continue;
+    if (v > 0) {
+      whiteMaterial += _values[type];
+    } else {
+      blackMaterial += _values[type];
+    }
     final score = _values[type] + _tables[type][v > 0 ? i : i ^ 56];
     white += v > 0 ? score : -score;
   }
-  final kingTable = pieces <= _endgameMaterial ? _kingEndTable : _kingTable;
+  final endgame = pieces <= _endgameMaterial;
+  final kingTable = endgame ? _kingEndTable : _kingTable;
+  final advantage = whiteMaterial - blackMaterial;
+  final mopUp = endgame && advantage.abs() >= _mopUpAdvantage;
   for (var i = 0; i < 64; i++) {
     final v = cells[i];
-    if (v == kKing) white += kingTable[i];
-    if (v == -kKing) white -= kingTable[i ^ 56];
+    // Dando mate, o rei de quem ganha não precisa do centro: ele vai atrás
+    // do outro rei (veja _mopUp).
+    if (v == kKing && !(mopUp && advantage > 0)) white += kingTable[i];
+    if (v == -kKing && !(mopUp && advantage < 0)) {
+      white -= kingTable[i ^ 56];
+    }
   }
+  if (mopUp) white += _mopUp(cells, advantage);
   return p.turn == ChessSide.white ? white : -white;
+}
+
+/// Final: material sem peões nem reis, somando os dois lados, até
+/// [_endgameMaterial].
+bool _isEndgame(ChessPosition p) {
+  var pieces = 0;
+  for (final v in p.cells) {
+    final type = v.abs();
+    if (type != 0 && type != kPawn && type != kKing) pieces += _values[type];
+  }
+  return pieces <= _endgameMaterial;
+}
+
+/// No final com uma torre ou mais de vantagem, quem ganha quer o rei
+/// adversário na borda e os dois reis perto, para conseguir dar mate.
+/// Pontuação do ponto de vista das brancas.
+int _mopUp(List<int> cells, int advantage) {
+  final whiteKing = cells.indexOf(kKing);
+  final blackKing = cells.indexOf(-kKing);
+  if (whiteKing < 0 || blackKing < 0) return 0;
+  final loser = advantage > 0 ? blackKing : whiteKing;
+  final lr = loser ~/ 8, lc = loser % 8;
+  // Distância do rei que perde até o centro (0 a 6).
+  final int fromCentre = max(3 - lr, lr - 4) + max(3 - lc, lc - 4);
+  final int kingsApart =
+      (whiteKing ~/ 8 - blackKing ~/ 8).abs() +
+      (whiteKing % 8 - blackKing % 8).abs();
+  final int bonus = 10 * fromCentre + 4 * (14 - kingsApart);
+  return advantage > 0 ? bonus : -bonus;
 }
