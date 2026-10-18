@@ -97,6 +97,20 @@ void main() {
       expect(notified, 0);
     });
 
+    test('start com lista de palavras vazia é ignorado', () {
+      final p = SilabasProvider(
+        words: {
+          0: [],
+          1: ['CAR-ro'],
+        },
+      );
+      p.start(0);
+      expect(p.phase, SilabasPhase.setup);
+      expect(p.word, isNull);
+      p.start(1);
+      expect(p.phase, SilabasPhase.playing);
+    });
+
     test('start fora da escolha de nível é ignorado', () {
       final p = started();
       final first = p.word!.text;
@@ -186,21 +200,20 @@ void main() {
       expect(p.missingHint, p.word!.syllables.length);
     });
 
-    test('cada conferência errada conta um erro só', () {
+    test('conferência com vermelho e dica juntos conta um erro só', () {
       final p = tiny();
-      p.toggleCut(badCut(p)); // vermelho e dica juntos
+      final bad = badCut(p);
+      p.toggleCut(bad);
       p.checkSplit();
-      p.toggleCut(badCut(p)); // desliga o errado; falta tudo
-      p.toggleCut(badCut(p)); // liga de novo
-      p.checkSplit();
-      // dois erros na etapa: 2 pontos
+      expect(p.wrongCuts, {bad});
+      expect(p.missingHint, isNotNull);
+      p.toggleCut(bad); // desliga o errado
       for (final c in p.word!.cutPositions) {
         p.toggleCut(c);
       }
-      p.toggleCut(badCut(p));
       p.checkSplit();
       expect(p.step, SilabasStep.stress);
-      expect(p.score, 2);
+      expect(p.score, 5);
     });
 
     test('tocar num corte limpa o vermelho e a dica', () {

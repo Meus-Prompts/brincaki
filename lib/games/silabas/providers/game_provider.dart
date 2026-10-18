@@ -58,7 +58,7 @@ class SilabasProvider extends ChangeNotifier {
   void start(int level) {
     if (_phase != SilabasPhase.setup) return;
     if (level < 0 || level >= levelNames.length) return;
-    if (_wordsByLevel[level] == null) return;
+    if (_wordsByLevel[level]?.isEmpty ?? true) return;
     _level = level;
     _newGame();
   }
