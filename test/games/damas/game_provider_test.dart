@@ -15,6 +15,12 @@ const _duo = PlayerSetupResult(
   player1: 'Ana',
   player2: 'Beto',
 );
+const _duoPretas = PlayerSetupResult(
+  mode: PlayMode.twoPlayers,
+  player1: 'Ana',
+  player2: 'Beto',
+  sideIndex: 1,
+);
 const _vsBrancas = PlayerSetupResult(
   mode: PlayMode.solo,
   player1: 'Ana',
@@ -60,6 +66,34 @@ void main() {
     expect(p.player1Side, DamasSide.white);
     expect(p.flipped, isFalse);
     expect(p.isComputerTurn, isFalse);
+  });
+
+  test('dois jogadores: Jogador 1 com as pretas, Jogador 2 começa', () {
+    final p = make()..start(_duoPretas);
+    expect(p.player1Side, DamasSide.black);
+    // Em dois jogadores o tabuleiro fica com as brancas embaixo.
+    expect(p.flipped, isFalse);
+    expect(p.isComputerTurn, isFalse);
+    expect(p.game.position.turn, DamasSide.white);
+    expect(p.currentPlayer, 2);
+    p.tapSquare(42);
+    p.tapSquare(35);
+    expect(p.currentPlayer, 1);
+    p.exitToSetup();
+    p.start(_duo);
+    expect(p.player1Side, DamasSide.white);
+  });
+
+  test('dois jogadores: vitória das pretas vai para o Jogador 1', () {
+    final p = make()..startFrom(_duoPretas, pos({42: 1, 33: -1}, DamasSide.black));
+    p.tapSquare(33);
+    p.tapSquare(51);
+    expect(p.phase, DamasPhase.finished);
+    expect(p.winnerPlayer, 1);
+    expect([p.wins1, p.wins2, p.draws], [1, 0, 0]);
+    p.playAgain();
+    expect(p.player1Side, DamasSide.black);
+    expect(p.currentPlayer, 2);
   });
 
   test('seleciona peça e acende destinos', () {

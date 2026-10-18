@@ -9,6 +9,7 @@ import 'package:brincaki/widgets/game_palette.dart';
 import 'package:brincaki/widgets/game_shell.dart';
 import 'package:brincaki/widgets/player_setup.dart';
 import 'package:brincaki/widgets/result_panel.dart';
+import 'package:brincaki/widgets/score_board.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -17,6 +18,12 @@ const _duo = PlayerSetupResult(
   mode: PlayMode.twoPlayers,
   player1: 'Ana',
   player2: 'Beto',
+);
+const _duoPretas = PlayerSetupResult(
+  mode: PlayMode.twoPlayers,
+  player1: 'Ana',
+  player2: 'Beto',
+  sideIndex: 1,
 );
 const _vsBrancas = PlayerSetupResult(
   mode: PlayMode.solo,
@@ -106,6 +113,34 @@ void main() {
       expect(p.game.position.cells[33], 1);
       expect(p.game.position.cells[42], 0);
       expect(find.text('Vez de ⚫ Jogador 2'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('dois jogadores: Jogador 1 com as pretas ($tag)',
+        (tester) async {
+      final p = await pumpScreen(tester, size);
+      await tapText(tester, 'Dois jogadores');
+      await tapText(tester, 'Pretas');
+      await tapText(tester, 'Jogar!');
+      // As brancas começam: é a vez do Jogador 2.
+      expect(find.text('Vez de ⚪ Jogador 2'), findsOneWidget);
+      final board = tester.widget<ScoreBoard>(find.byType(ScoreBoard));
+      expect((board.symbol1, board.symbol2), ('⚫', '⚪'));
+      // Tabuleiro fixo com as brancas embaixo.
+      expect(p.flipped, isFalse);
+      final top = tester.getTopLeft(find.byKey(const Key('sq-0')));
+      final bottom = tester.getTopLeft(find.byKey(const Key('sq-63')));
+      expect(top.dy, lessThan(bottom.dy));
+      await tapSq(tester, 42);
+      await tapSq(tester, 33);
+      expect(find.text('Vez de ⚫ Jogador 1'), findsOneWidget);
+      // Vitória das pretas vai para o Jogador 1.
+      p.startFrom(_duoPretas, pos({42: 1, 33: -1}, DamasSide.black));
+      await tester.pumpAndSettle();
+      await tapSq(tester, 33);
+      await tapSq(tester, 51);
+      expect(find.text('Ana venceu!'), findsOneWidget);
+      expect(p.wins1, 1);
       expect(tester.takeException(), isNull);
     });
 

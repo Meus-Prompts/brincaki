@@ -118,9 +118,8 @@ class DamasProvider extends ChangeNotifier {
     _name1 = setup.player1;
     _name2 = setup.player2;
     _aiLevel = AiLevel.values[setup.levelIndex ?? 1];
-    _player1Side = _mode == PlayMode.solo && (setup.sideIndex ?? 0) == 1
-        ? DamasSide.black
-        : DamasSide.white;
+    // Em dois jogadores a cor escolhida é a do Jogador 1.
+    _player1Side = (setup.sideIndex ?? 0) == 1 ? DamasSide.black : DamasSide.white;
     _wins1 = 0;
     _wins2 = 0;
     _draws = 0;
