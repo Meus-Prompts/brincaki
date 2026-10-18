@@ -29,6 +29,14 @@ const _vsBrancas = PlayerSetupResult(
   sideIndex: 0,
 );
 
+const _vsPretas = PlayerSetupResult(
+  mode: PlayMode.solo,
+  player1: 'Ana',
+  player2: 'Computador',
+  levelIndex: 0,
+  sideIndex: 1,
+);
+
 const _sizes = [Size(360, 740), Size(320, 568)];
 
 Future<ChessMove> firstMove(ChessPosition p, AiLevel l) async =>
@@ -325,6 +333,89 @@ void main() {
       final a = tester.getTopLeft(find.text('a'));
       final h = tester.getTopLeft(find.text('h'));
       expect(a.dx, lessThan(h.dx));
+    });
+
+    testWidgets('coordenadas viram com as pretas ($tag)', (tester) async {
+      final p = await pumpScreen(tester, size);
+      p.startFrom(_vsPretas,
+          fen('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1'));
+      await tester.pumpAndSettle();
+      expect(p.flipped, isTrue);
+      final a = tester.getTopLeft(find.text('a'));
+      final h = tester.getTopLeft(find.text('h'));
+      // Na fileira de baixo o 'h' fica à esquerda do 'a'.
+      expect(h.dx, lessThan(a.dx));
+      expect(h.dy, closeTo(a.dy, 0.01));
+      // O '8' fica embaixo e o '1' em cima.
+      final one = tester.getTopLeft(find.text('1'));
+      final eight = tester.getTopLeft(find.text('8'));
+      expect(one.dy, lessThan(eight.dy));
+      // '8' na casa h8 (canto de baixo à esquerda) e '1' em h1 (em cima).
+      Finder inSq(int i, String t) =>
+          find.descendant(of: find.byKey(Key('sq-$i')), matching: find.text(t));
+      expect(inSq(7, '8'), findsOneWidget);
+      expect(inSq(7, 'h'), findsOneWidget);
+      expect(inSq(0, 'a'), findsOneWidget);
+      expect(inSq(63, '1'), findsOneWidget);
+      final bottomLeft = tester.getTopLeft(find.byKey(const Key('sq-7')));
+      final topLeft = tester.getTopLeft(find.byKey(const Key('sq-63')));
+      expect(bottomLeft.dy, greaterThan(topLeft.dy));
+      expect(bottomLeft.dx, closeTo(topLeft.dx, 0.01));
+    });
+
+    testWidgets('rei em mate fica com a casa vermelha ($tag)', (tester) async {
+      final p = await pumpScreen(tester, size);
+      await tapText(tester, 'Dois jogadores');
+      await tapText(tester, 'Jogar!');
+      for (final (from, to) in [(53, 45), (12, 28), (54, 38), (3, 39)]) {
+        await tapSq(tester, from);
+        await tapSq(tester, to);
+      }
+      expect(p.game.end, XadrezEnd.checkmate);
+      Color colorOf(int i) => tester
+          .widget<ColoredBox>(find
+              .descendant(
+                  of: find.byKey(Key('sq-$i')),
+                  matching: find.byType(ColoredBox))
+              .first)
+          .color;
+      expect(colorOf(60), const Color(0xFFEF4444));
+      expect(colorOf(4), isNot(const Color(0xFFEF4444)));
+    });
+
+    testWidgets('promoção das pretas mostra peças pretas ($tag)',
+        (tester) async {
+      final p = await pumpScreen(tester, size);
+      p.startFrom(_duo, fen('7k/8/8/8/8/8/p7/7K b - - 0 1'));
+      await tester.pumpAndSettle();
+      await tapSq(tester, 48);
+      await tapSq(tester, 56);
+      expect(find.text('Promover para:'), findsOneWidget);
+      for (final t in [5, 4, 3, 2]) {
+        final piece = tester.widget<ChessPiece>(find.descendant(
+            of: find.byKey(Key('promo-$t')),
+            matching: find.byType(ChessPiece)));
+        expect(piece.value, -t);
+      }
+      await tester.tap(find.byKey(const Key('promo-5')));
+      await tester.pumpAndSettle();
+      expect(p.game.position.cells[56], -5);
+      // A dama nova em a1 dá xeque no rei branco em h1.
+      expect(find.text('Vez de ⚪ Ana • Xeque!'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('voltar depois do fim sai sem perguntar ($tag)',
+        (tester) async {
+      final p = await pumpScreen(tester, size);
+      p.startFrom(_duo, fen('7k/5Q2/6K1/8/8/8/8/8 b - - 0 1'));
+      await tester.pumpAndSettle();
+      expect(p.phase, XadrezPhase.finished);
+      await tester.tap(find.byTooltip('Voltar ao menu'));
+      await tester.pumpAndSettle();
+      expect(find.text('Sair do jogo?'), findsNothing);
+      expect(find.byType(XadrezScreen), findsNothing);
+      expect(find.text('menu'), findsOneWidget);
     });
 
     testWidgets('sem overflow com placar, vez e resultado ($tag)',
