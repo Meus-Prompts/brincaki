@@ -123,8 +123,8 @@ void main() {
     expect((make()..start(_duo)).mustCapture, isEmpty);
   });
 
-  test('salto por toque só acende pousos da maioria', () {
-    // Dama em 56 (7,0): pode comer 49? Monta duas capturas em sequência.
+  test('salto da pedra por toque continua a sequência', () {
+    // Pedra em 49 (6,1): come 42 e depois 26, um salto por toque.
     final p = make()..startFrom(_duo, pos({49: 1, 42: -1, 26: -1}));
     p.tapSquare(49);
     expect(p.targets, {35});
@@ -141,6 +141,36 @@ void main() {
     expect(p.game.position.cells[42], 0);
     expect(p.lastMove!.captured, [42, 26]);
     expect(p.partialPath, isEmpty);
+  });
+
+  test('salto por toque só acende pousos da maioria (dama voadora)', () {
+    // Dama em 56 (7,0) come 49 e pode pousar em 42, 35, 28, 21, 14 ou 7.
+    // Só de 35 (come 26) e de 28 (come 19) dá para continuar capturando.
+    final p = make()
+      ..startFrom(_duo, pos({56: 2, 49: -1, 26: -1, 19: -1, 4: -1}));
+    p.tapSquare(56);
+    expect(p.selected, 56);
+    expect(p.targets, {35, 28});
+    // Pouso que não continua: não vale como lance, só desmarca.
+    p.tapSquare(42);
+    expect(p.selected, isNull);
+    expect(p.game.position.cells[56], 2);
+    expect(p.currentPlayer, 1);
+    p.tapSquare(56);
+    p.tapSquare(35);
+    expect(p.partialPath, [56, 35]);
+    expect(p.capturedSoFar, {49});
+    expect(p.currentPlayer, 1);
+    // Depois de 26, a dama pode parar em 17 ou 8.
+    expect(p.targets, {17, 8});
+    p.tapSquare(8);
+    expect(p.currentPlayer, 2);
+    expect(p.lastMove!.path, [56, 35, 8]);
+    expect(p.lastMove!.captured, [49, 26]);
+    expect(p.game.position.cells[8], 2);
+    expect(p.game.position.cells[49], 0);
+    expect(p.game.position.cells[26], 0);
+    expect(p.game.position.cells[19], -1);
   });
 
   test('displayCells mostra a peça no último pouso durante o salto', () {
