@@ -80,9 +80,25 @@ class DamasProvider extends ChangeNotifier {
     return matches.first.captured.take(n).toSet();
   }
 
+  /// Casas como aparecem na tela: no meio de uma captura múltipla, a peça
+  /// fica no último pouso e a origem fica vazia (as capturadas continuam lá
+  /// até o fim do lance). A posição da partida não muda.
+  List<int> get displayCells {
+    final cells = _game.position.cells;
+    if (_partialPath.length < 2) return cells;
+    final piece = cells[_partialPath.first];
+    return List.unmodifiable(
+      List<int>.of(cells)
+        ..[_partialPath.first] = 0
+        ..[_partialPath.last] = piece,
+    );
+  }
+
   /// Casas de peças que podem capturar quando a captura é obrigatória.
+  /// No meio de uma captura múltipla, só a peça que está saltando.
   Set<int> get mustCapture {
     if (_phase != DamasPhase.playing || isComputerTurn) return const {};
+    if (_partialPath.length >= 2) return {_partialPath.last};
     final moves = _game.legalMoves;
     if (moves.isEmpty || !moves.first.isCapture) return const {};
     return {for (final m in moves) m.from};

@@ -282,5 +282,36 @@ void main() {
         findsNothing,
       );
     });
+
+    testWidgets('salto múltiplo desenha a peça no último pouso ($tag)',
+        (tester) async {
+      final p = await pumpScreen(tester, size);
+      p.startFrom(_duo, pos({49: 1, 42: -1, 26: -1}));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('piece-49')), findsOneWidget);
+      await tapSq(tester, 49);
+      await tapSq(tester, 35);
+      expect(p.partialPath, [49, 35]);
+      expect(find.byKey(const Key('piece-49')), findsNothing);
+      expect(
+        find.descendant(
+            of: find.byKey(const Key('sq-35')),
+            matching: find.byKey(const Key('piece-35'))),
+        findsOneWidget,
+      );
+      // Só a peça que está saltando pulsa.
+      expect(find.byKey(const Key('must-capture')), findsOneWidget);
+      expect(
+        find.descendant(
+            of: find.byKey(const Key('sq-35')),
+            matching: find.byKey(const Key('must-capture'))),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('target-17')), findsOneWidget);
+      await tapSq(tester, 17);
+      expect(find.byKey(const Key('piece-17')), findsOneWidget);
+      expect(find.byKey(const Key('piece-35')), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
   }
 }

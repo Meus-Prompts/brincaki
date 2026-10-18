@@ -143,6 +143,30 @@ void main() {
     expect(p.partialPath, isEmpty);
   });
 
+  test('displayCells mostra a peça no último pouso durante o salto', () {
+    final p = make()..startFrom(_duo, pos({49: 1, 42: -1, 26: -1, 63: 1}));
+    expect(p.displayCells, p.game.position.cells);
+    expect(p.mustCapture, {49});
+    p.tapSquare(49);
+    // Só selecionada: nada muda no desenho.
+    expect(p.displayCells, p.game.position.cells);
+    p.tapSquare(35);
+    final cells = p.displayCells;
+    expect(cells[49], 0);
+    expect(cells[35], 1);
+    // A capturada continua no tabuleiro até o fim do lance.
+    expect(cells[42], -1);
+    expect(cells[26], -1);
+    expect(cells[63], 1);
+    // A posição de verdade não muda no meio do lance.
+    expect(p.game.position.cells[49], 1);
+    expect(p.game.position.cells[35], 0);
+    // O contorno pulsando fica só na peça que está saltando.
+    expect(p.mustCapture, {35});
+    p.tapSquare(17);
+    expect(p.displayCells, p.game.position.cells);
+  });
+
   test('troca a vez depois do lance completo', () {
     final p = make()..start(_duo);
     p.tapSquare(42);

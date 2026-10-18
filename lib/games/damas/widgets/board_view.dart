@@ -17,7 +17,7 @@ class DamasBoardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.watch<DamasProvider>();
-    final cells = p.game.position.cells;
+    final cells = p.displayCells;
     final last = p.lastMove?.path.toSet() ?? const <int>{};
     final path = p.partialPath.toSet();
     final targets = p.targets;
@@ -91,6 +91,7 @@ class DamasBoardView extends StatelessWidget {
           children: [
             if (value != 0)
               Padding(
+                key: Key('piece-$index'),
                 padding: const EdgeInsets.all(3),
                 child: _maybeFaded(
                   captured.contains(index),
