@@ -146,4 +146,29 @@ void main() {
     await tester.pump();
     expect(prefix(), contains('⚫'));
   });
+
+  testWidgets('dois jogadores: cor padrão brancas e prefixos trocam com pretas',
+      (tester) async {
+    await pumpSetup(tester,
+        sides: ('Brancas', 'Pretas'), symbols: ('⚪', '⚫'));
+    await tester.tap(find.text('Dois jogadores'));
+    await tester.pump();
+    String prefix(String key) => tester
+        .widget<TextField>(find.descendant(
+            of: find.byKey(Key(key)), matching: find.byType(TextField)))
+        .decoration!
+        .prefixText!;
+    expect(prefix('name1'), contains('⚪'));
+    expect(prefix('name2'), contains('⚫'));
+    await tester.tap(find.text('Jogar!'));
+    expect(result!.mode, PlayMode.twoPlayers);
+    expect(result!.sideIndex, 0);
+
+    await tester.tap(find.text('Pretas'));
+    await tester.pump();
+    expect(prefix('name1'), contains('⚫'));
+    expect(prefix('name2'), contains('⚪'));
+    await tester.tap(find.text('Jogar!'));
+    expect(result!.sideIndex, 1);
+  });
 }
