@@ -87,3 +87,10 @@ const kLig4Palette = GamePalette(
   dark: Color(0xFFB91C1C),
   background: Color(0xFFFEF2F2),
 );
+
+const kContasPalette = GamePalette(
+  accent: Color(0xFF65A30D),
+  light: Color(0xFF84CC16),
+  dark: Color(0xFF3F6212),
+  background: Color(0xFFF7FEE7),
+);
