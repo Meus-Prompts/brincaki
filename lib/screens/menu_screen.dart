@@ -18,6 +18,8 @@ import '../games/termo/screens/game_screen.dart';
 import '../games/termo/providers/game_provider.dart';
 import '../games/lig4/screens/game_screen.dart';
 import '../games/lig4/providers/game_provider.dart';
+import '../games/contas/screens/game_screen.dart';
+import '../games/contas/providers/game_provider.dart';
 import '../widgets/game_palette.dart';
 import '../widgets/game_shell.dart';
 
@@ -136,6 +138,18 @@ class MenuScreen extends StatelessWidget {
     );
   }
 
+  void _openContas(BuildContext context) {
+    _openGame(
+      context,
+      GameShell(
+        wrapProvider: (child) =>
+            ChangeNotifierProvider(create: (_) => ContasProvider(), child: child),
+        theme: kContasPalette.theme,
+        home: (_) => const ContasScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -224,6 +238,15 @@ class MenuScreen extends StatelessWidget {
                 tags: const ['Contra o computador', '2 jogadores'],
                 palette: kLig4Palette,
                 onTap: () => _openLig4(context),
+              ),
+              const SizedBox(height: 16),
+              _buildGameCard(
+                emoji: '🧮',
+                title: 'Contas',
+                description: 'Resolva as contas e bata o seu recorde!',
+                tags: const ['+ − × ÷', '3 níveis'],
+                palette: kContasPalette,
+                onTap: () => _openContas(context),
               ),
               const SizedBox(height: 32),
               _buildFooter(),

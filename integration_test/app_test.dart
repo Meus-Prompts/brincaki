@@ -14,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:brincaki/games/2048/providers/game_provider.dart';
 import 'package:brincaki/games/cacapalavras/providers/game_provider.dart';
 import 'package:brincaki/games/cacapalavras/widgets/letter_grid.dart';
+import 'package:brincaki/games/contas/providers/game_provider.dart';
 import 'package:brincaki/games/forca/providers/game_provider.dart';
 import 'package:brincaki/games/lig4/logic/board.dart' as lig4;
 import 'package:brincaki/games/lig4/providers/game_provider.dart';
@@ -83,11 +84,11 @@ Finder inPanel(String text) =>
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('menu mostra os 8 jogos', (tester) async {
+  testWidgets('menu mostra os 9 jogos', (tester) async {
     await launchApp(tester);
     for (final title in [
       'Caça-Palavras', 'Sudoku', '2048', 'Jogo da Velha',
-      'Jogo da Forca', 'Jogo da Memória', 'Termo', 'Lig 4',
+      'Jogo da Forca', 'Jogo da Memória', 'Termo', 'Lig 4', 'Contas',
     ]) {
       await tester.scrollUntilVisible(find.text(title).first, 200,
           scrollable: find.byType(Scrollable).first);
@@ -373,6 +374,39 @@ void main() {
     await tester.tap(find.text('Nova palavra'));
     await tester.pumpAndSettle();
     expect(p.guesses, isEmpty);
+    await backToMenu(tester);
+  });
+
+  testWidgets('Contas: acerta pelo teclado, erra 3 vezes e volta',
+      (tester) async {
+    await launchApp(tester);
+    await openGame(tester, 'Contas');
+    await tapVisible(tester, find.text('× Multiplicação'));
+    await tapVisible(tester, find.text('Jogar!'));
+    await tester.pumpAndSettle();
+    expect(find.text('Contas • Multiplicação 1'), findsOneWidget);
+
+    final p = providerOf<ContasProvider>(tester);
+    Future<void> type(int value) async {
+      for (final digit in '$value'.split('')) {
+        await tapVisible(tester, find.byKey(Key('tecla-$digit')));
+      }
+      await tapVisible(tester, find.byKey(const Key('tecla-ok')));
+      await tester.pumpAndSettle();
+    }
+
+    for (var i = 0; i < 3; i++) {
+      await type(p.problem!.answer);
+    }
+    expect(p.score, 30);
+    for (var i = 0; i < 3; i++) {
+      await type(p.problem!.answer + 1);
+      if (i < 2) {
+        await tapVisible(tester, find.text('Continuar'));
+        await tester.pumpAndSettle();
+      }
+    }
+    expect(inPanel('Novo recorde!'), findsOneWidget);
     await backToMenu(tester);
   });
 }
