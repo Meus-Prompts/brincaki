@@ -44,6 +44,10 @@ class XadrezProvider extends ChangeNotifier {
   int _draws = 0;
   bool _aiThinking = false;
 
+  /// Histórico entregue pelo runner padrão ao computador (só para testes).
+  @visibleForTesting
+  List<String>? lastAiHistory;
+
   XadrezPhase get phase => _phase;
   PlayMode get mode => _mode;
   String get name1 => _name1;
@@ -230,6 +234,7 @@ class XadrezProvider extends ChangeNotifier {
     final seed = _random.nextInt(1 << 30);
     // Copia antes do await: o histórico é o da posição que está sendo jogada.
     final history = List<String>.of(_game.recentKeys);
+    lastAiHistory = history;
     if (level == AiLevel.easy) {
       return chooseMove(position, level, Random(seed), history: history);
     }

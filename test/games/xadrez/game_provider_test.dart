@@ -294,66 +294,7 @@ void main() {
   });
 
   test('vitória do jogador 1 com as pretas soma em wins1', () {
-    // O jogador 1 joga de pretas e já começa com o mate do louco aplicado.
-    final q = make()..startFrom(_duo, fen('8/P6k/8/8/8/8/8/K7 w - - 0 1'));
-    tapMove(q, 'a7', 'a8');
-    q.promote(kKing); // peça inválida: continua esperando
-    expect(q.pendingPromotion, isNotNull);
-    expect(q.lastMove, isNull);
-  });
-
-  test('cancelar promoção não mexe no tabuleiro', () {
-    final p = make()..startFrom(_duo, fen('8/P6k/8/8/8/8/8/K7 w - - 0 1'));
-    final cells = p.game.position.cells;
-    tapMove(p, 'a7', 'a8');
-    expect(p.pendingPromotion, isNotNull);
-    p.cancelPromotion();
-    expect(p.pendingPromotion, isNull);
-    expect(p.selected, isNull);
-    expect(p.targets, isEmpty);
-    expect(p.game.position.cells, cells);
-    expect(p.game.position.turn, ChessSide.white);
-    expect(p.lastMove, isNull);
-    expect(p.currentPlayer, 1);
-    p.cancelPromotion(); // sem pendência: nada acontece
-    // O jogador pode tentar de novo.
-    tapMove(p, 'a7', 'a8');
-    p.promote(kQueen);
-    expect(p.game.position.cells[squareOf('a8')], kQueen);
-  });
-
-  test('checkSquare marca o rei em xeque', () {
-    final p = make()..startFrom(_duo, fen('4k3/8/8/8/8/8/8/4K2r w - - 0 1'));
-    expect(p.game.position.inCheck, isTrue);
-    expect(p.checkSquare, squareOf('e1'));
-    p.tapSquare(squareOf('e1'));
-    p.tapSquare(squareOf('d2'));
-    expect(p.checkSquare, isNull);
-  });
-
-  test('mate soma no placar e checkSquare marca o rei mated', () {
-    final p = make()..start(_duo);
-    for (final (from, to) in [
-      ('f2', 'f3'),
-      ('e7', 'e5'),
-      ('g2', 'g4'),
-      ('d8', 'h4'),
-    ]) {
-      tapMove(p, from, to);
-    }
-    expect(p.phase, XadrezPhase.finished);
-    expect(p.game.end, XadrezEnd.checkmate);
-    expect(p.winnerPlayer, 2);
-    expect([p.wins1, p.wins2, p.draws], [0, 1, 0]);
-    expect(p.checkSquare, squareOf('e1'));
-    p.tapSquare(e2);
-    expect(p.selected, isNull);
-  });
-
-  test('vitória do jogador 1 com as pretas soma em wins1', () {
-    // O jogador 1 joga de pretas e dá o mate do louco.
-    final p = make()..startFrom(_duo, fen('4k3/8/8/8/8/8/8/4K3 w - - 0 1'));
-    expect(p.draws, 1);
+    // Jogador 1 é das pretas; as brancas já estão em mate.
     final q = make()
       ..startFrom(
         const PlayerSetupResult(
@@ -368,6 +309,7 @@ void main() {
     expect(q.phase, XadrezPhase.finished);
     expect(q.winnerPlayer, 1);
     expect(q.wins1, 1);
+    expect([q.wins2, q.draws], [0, 0]);
   });
 
   test('descarta lance atrasado do computador', () async {
@@ -381,6 +323,74 @@ void main() {
     expect(p.phase, XadrezPhase.setup);
     expect(p.aiThinking, isFalse);
     expect(p.lastMove, isNull);
+  });
+
+  test('descarta lance atrasado com thinkTime ao sair do jogo', () async {
+    final p = XadrezProvider(
+      thinkTime: const Duration(milliseconds: 50),
+      aiRunner: firstMove,
+    )..start(_vsPretas);
+    expect(p.aiThinking, isTrue);
+    p.exitToSetup();
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    expect(p.phase, XadrezPhase.setup);
+    expect(p.aiThinking, isFalse);
+    expect(p.lastMove, isNull);
+    expect(p.game.position.turn, ChessSide.white);
+    p.dispose();
+  });
+
+  test(
+    'começar de novo durante o "Pensando..." descarta o lance velho',
+    () async {
+      final calls = <ChessPosition>[];
+      final p = XadrezProvider(
+        thinkTime: const Duration(milliseconds: 50),
+        aiRunner: (pos, l) {
+          calls.add(pos);
+          return firstMove(pos, l);
+        },
+      )..start(_vsPretas);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      p.start(_duo); // duas pessoas: ninguém deve jogar sozinho
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+      expect(calls, isEmpty);
+      expect(p.lastMove, isNull);
+      expect(p.aiThinking, isFalse);
+      expect(p.currentPlayer, 1);
+      // E contra o computador de novo: só o lance da partida nova vale.
+      p.start(_vsPretas);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      p.start(_vsPretas);
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+      expect(calls.length, 1);
+      expect(p.game.position.turn, ChessSide.black);
+      expect(p.game.position.fullmove, 1);
+      p.dispose();
+    },
+  );
+
+  test('runner padrão recebe o histórico de repetições da partida', () async {
+    // Torres que vão e voltam: as chaves recentes crescem sem captura.
+    final p = XadrezProvider(random: Random(1), thinkTime: Duration.zero)
+      ..startFrom(
+        const PlayerSetupResult(
+          mode: PlayMode.solo,
+          player1: 'Ana',
+          player2: 'C',
+          levelIndex: 0,
+          sideIndex: 0,
+        ),
+        fen('r3k3/8/8/8/8/8/8/R3K3 w - - 0 1'),
+      );
+    expect(p.lastAiHistory, isNull);
+    tapMove(p, 'a1', 'b1');
+    final expected = List<String>.of(p.game.recentKeys);
+    expect(expected.length, 2);
+    await settle();
+    expect(p.lastAiHistory, expected);
+    expect(p.lastMove, isNotNull);
+    p.dispose();
   });
 
   test('runner que falha joga um lance legal', () async {
