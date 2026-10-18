@@ -6,6 +6,7 @@ import 'package:brincaki/games/xadrez/models/game_state.dart';
 import 'package:brincaki/games/xadrez/providers/game_provider.dart';
 import 'package:brincaki/games/xadrez/screens/game_screen.dart';
 import 'package:brincaki/games/xadrez/widgets/chess_piece.dart';
+import 'package:brincaki/games/xadrez/widgets/promotion_picker.dart';
 import 'package:brincaki/widgets/game_palette.dart';
 import 'package:brincaki/widgets/game_shell.dart';
 import 'package:brincaki/widgets/player_setup.dart';
@@ -186,6 +187,30 @@ void main() {
       await tapText(tester, 'Cancelar');
       expect(find.text('Promover para:'), findsNothing);
       expect(p.game.position.cells[8], 1);
+      expect(find.text('Vez de ⚪ Ana'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('tocar fora do cartão da promoção cancela ($tag)',
+        (tester) async {
+      final p = await pumpScreen(tester, size);
+      p.startFrom(_duo, fen('8/P6k/8/8/8/8/8/K7 w - - 0 1'));
+      await tester.pumpAndSettle();
+      await tapSq(tester, 8);
+      await tapSq(tester, 0);
+      // Tocar no próprio cartão não fecha a escolha.
+      await tester.tap(find.text('Promover para:'));
+      await tester.pumpAndSettle();
+      expect(find.text('Promover para:'), findsOneWidget);
+      expect(p.pendingPromotion, isNotNull);
+      // Tocar no fundo escuro cancela o lance.
+      final corner = tester.getTopLeft(find.byType(PromotionPicker));
+      await tester.tapAt(corner + const Offset(4, 4));
+      await tester.pumpAndSettle();
+      expect(find.text('Promover para:'), findsNothing);
+      expect(p.pendingPromotion, isNull);
+      expect(p.game.position.cells[8], 1);
+      expect(p.game.position.cells[0], 0);
       expect(find.text('Vez de ⚪ Ana'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
