@@ -56,9 +56,13 @@ void main() {
 
   test('dicas das classes', () {
     expect(stressClassHint(StressClass.oxitona), 'a última é a mais forte');
-    expect(stressClassHint(StressClass.paroxitona),
-        'a penúltima é a mais forte');
-    expect(stressClassHint(StressClass.proparoxitona),
-        'a antepenúltima é a mais forte');
+    expect(
+      stressClassHint(StressClass.paroxitona),
+      'a penúltima é a mais forte',
+    );
+    expect(
+      stressClassHint(StressClass.proparoxitona),
+      'a antepenúltima é a mais forte',
+    );
   });
 }

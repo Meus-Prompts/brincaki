@@ -40,7 +40,10 @@ class SilabasWord {
 SilabasWord parseWord(String encoded) {
   final parts = encoded.split('-');
   if (parts.length < 2) {
-    throw FormatException('A palavra precisa de ao menos duas sílabas', encoded);
+    throw FormatException(
+      'A palavra precisa de ao menos duas sílabas',
+      encoded,
+    );
   }
   if (parts.any((p) => p.isEmpty)) {
     throw FormatException('Sílaba vazia', encoded);
