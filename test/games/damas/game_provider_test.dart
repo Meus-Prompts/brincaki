@@ -191,20 +191,37 @@ void main() {
   });
 
   test('ignora toques depois do fim', () {
-    final p = make()..startFrom(_duo, pos({42: 1, 33: -1, 60: 1}));
-    p.tapSquare(42);
-    p.tapSquare(24);
-    expect(p.phase, DamasPhase.finished);
-    final cells = p.game.position.cells;
-    final wins = p.wins1;
-    // 60 e 24 são peças brancas com casas livres à frente.
-    for (final i in [60, 51, 24, 17, 15]) {
-      p.tapSquare(i);
-      expect(p.selected, isNull, reason: 'toque em $i');
-      expect(p.partialPath, isEmpty);
-      expect(p.game.position.cells, cells);
+    // Duas damas que vão e voltam: a terceira repetição empata a partida.
+    final p = make()..startFrom(_duo, pos({56: 2, 5: -2}));
+    for (var i = 0; i < 2; i++) {
+      for (final (from, to) in [(56, 49), (5, 12), (49, 56), (12, 5)]) {
+        p.tapSquare(from);
+        p.tapSquare(to);
+      }
     }
-    expect(p.wins1, wins);
+    expect(p.phase, DamasPhase.finished);
+    expect(p.game.end, DamasEnd.repetition);
+    expect(p.winnerPlayer, isNull);
+    // Quem tem a vez ainda teria lances pelas regras, mas a partida acabou.
+    expect(p.game.legalMoves, isEmpty);
+    final legal = legalMoves(p.game.position);
+    expect(legal, isNotEmpty);
+    final cells = p.game.position.cells;
+    final turn = p.game.position.turn;
+    final move = p.lastMove;
+    final draws = p.draws;
+    p.tapSquare(legal.first.from);
+    expect(p.selected, isNull);
+    expect(p.partialPath, isEmpty);
+    expect(p.targets, isEmpty);
+    p.tapSquare(legal.first.to);
+    expect(p.selected, isNull);
+    expect(p.partialPath, isEmpty);
+    expect(p.game.position.cells, cells);
+    expect(p.game.position.turn, turn);
+    expect(p.lastMove, move);
+    expect([p.wins1, p.wins2, p.draws], [0, 0, draws]);
+    expect(draws, 1);
   });
 
   test('descarta lance atrasado do computador', () async {
