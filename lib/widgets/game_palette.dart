@@ -108,3 +108,10 @@ const kXadrezPalette = GamePalette(
   dark: Color(0xFF3730A3),
   background: Color(0xFFEEF2FF),
 );
+
+const kSilabasPalette = GamePalette(
+  accent: Color(0xFF0891B2),
+  light: Color(0xFF22D3EE),
+  dark: Color(0xFF155E75),
+  background: Color(0xFFECFEFF),
+);
