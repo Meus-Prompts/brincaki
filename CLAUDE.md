@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Brincaki is a Flutter app made of casual games for kids (Dart package name `brincaki`). The UI text, comments, and test names are in Brazilian Portuguese. Keep new content in Portuguese too.
 
-Eleven games live under `lib/games/`: `cacapalavras`, `sudoku`, `2048`, `tictactoe` (Jogo da Velha), `forca`, `memoria`, `termo`, `lig4`, `contas` (math drills with lives, a streak multiplier and saved records), `damas` (checkers, mandatory and majority capture, flying kings) and `xadrez` (chess with full rules, promotion picker and a computer opponent).
+Twelve games live under `lib/games/`: `cacapalavras`, `sudoku`, `2048`, `tictactoe` (Jogo da Velha), `forca`, `memoria`, `termo`, `lig4`, `contas` (math drills with lives, a streak multiplier and saved records), `damas` (checkers, mandatory and majority capture, flying kings), `xadrez` (chess with full rules, promotion picker and a computer opponent) and `silabas` (syllables, stressed syllable and its classification).
 
 Dependencies used in the code: `provider`, `google_fonts` (the Fredoka font everywhere, bundled in `assets/google_fonts/`, never fetched at runtime), `shared_preferences`, `flutter_test` and `integration_test`. The chess piece glyphs use the bundled `ChessSymbols` font in `assets/fonts/` (Noto Sans Symbols 2 subset, OFL).
 
@@ -31,7 +31,7 @@ flutter run --debug
 - `game_palette.dart`: one `GamePalette` per game (`accent`, `light`, `dark`, `background`, plus `theme`). The menu card and the game screen both use it.
 - `game_scaffold.dart`: `GameScaffold` is the root of every game screen. It has the AppBar with the "Voltar ao menu" arrow (pops the root navigator), an optional `result` slot under the body, and `confirmExit` to ask "Sair do jogo?" mid-game.
 - `result_panel.dart`: `ResultPanel` is the end-of-game card at the bottom, so the final board stays visible. Standard button labels: "Jogar de novo", "Próximo nível", "Trocar jogadores", "Mudar nível".
-- `player_setup.dart` (games with "Contra o computador"/"Sozinho" and "Dois jogadores": Velha, Lig 4, Memória, Damas, Xadrez; its optional `sides` adds a color picker, e.g. Brancas/Pretas, used by Damas and Xadrez) and `solo_setup.dart` (one-player games with a level: Forca, Caça-Palavras, Sudoku). Both use `level_picker.dart` and `setup_header.dart`. 2048 and Termo have no setup screen. Contas has its own setup (operation, level and answer mode) built from `LevelPicker`, `SetupHeader` and `StartButton`.
+- `player_setup.dart` (games with "Contra o computador"/"Sozinho" and "Dois jogadores": Velha, Lig 4, Memória, Damas, Xadrez; its optional `sides` adds a color picker, e.g. Brancas/Pretas, used by Damas and Xadrez) and `solo_setup.dart` (one-player games with a level: Forca, Caça-Palavras, Sudoku, Sílabas). Both use `level_picker.dart` and `setup_header.dart`. 2048 and Termo have no setup screen. Contas has its own setup (operation, level and answer mode) built from `LevelPicker`, `SetupHeader` and `StartButton`.
 - `score_board.dart` for two-player scores, and `game_shell.dart` (see below).
 
 **Each game is a self-contained module** under `lib/games/<game>/`:

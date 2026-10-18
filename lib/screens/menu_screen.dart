@@ -24,6 +24,8 @@ import '../games/damas/screens/game_screen.dart';
 import '../games/damas/providers/game_provider.dart';
 import '../games/xadrez/screens/game_screen.dart';
 import '../games/xadrez/providers/game_provider.dart';
+import '../games/silabas/screens/game_screen.dart';
+import '../games/silabas/providers/game_provider.dart';
 import '../widgets/game_palette.dart';
 import '../widgets/game_shell.dart';
 
@@ -166,6 +168,18 @@ class MenuScreen extends StatelessWidget {
     );
   }
 
+  void _openSilabas(BuildContext context) {
+    _openGame(
+      context,
+      GameShell(
+        wrapProvider: (child) =>
+            ChangeNotifierProvider(create: (_) => SilabasProvider(), child: child),
+        theme: kSilabasPalette.theme,
+        home: (_) => const SilabasScreen(),
+      ),
+    );
+  }
+
   void _openXadrez(BuildContext context) {
     _openGame(
       context,
@@ -293,6 +307,15 @@ class MenuScreen extends StatelessWidget {
                 tags: const ['Contra o computador', '2 jogadores'],
                 palette: kXadrezPalette,
                 onTap: () => _openXadrez(context),
+              ),
+              const SizedBox(height: 16),
+              _buildGameCard(
+                emoji: '🔤',
+                title: 'Sílabas',
+                description: 'Separe as sílabas e ache a mais forte!',
+                tags: const ['Português', '3 níveis'],
+                palette: kSilabasPalette,
+                onTap: () => _openSilabas(context),
               ),
               const SizedBox(height: 32),
               _buildFooter(),

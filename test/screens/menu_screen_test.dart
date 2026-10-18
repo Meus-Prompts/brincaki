@@ -44,6 +44,7 @@ void main() {
       'Contas',
       'Damas',
       'Xadrez',
+      'Sílabas',
     ]) {
       await tester.ensureVisible(find.text(title).first);
       expect(find.text(title), findsWidgets);
@@ -63,6 +64,7 @@ void main() {
     'Contas': find.text('Responder com'),
     'Damas': find.text('Contra o computador'),
     'Xadrez': find.text('Contra o computador'),
+    'Sílabas': find.text('Nível'),
   };
 
   for (final entry in games.entries) {

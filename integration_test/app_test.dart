@@ -20,6 +20,8 @@ import 'package:brincaki/games/forca/providers/game_provider.dart';
 import 'package:brincaki/games/lig4/logic/board.dart' as lig4;
 import 'package:brincaki/games/lig4/providers/game_provider.dart';
 import 'package:brincaki/games/memoria/providers/game_provider.dart';
+import 'package:brincaki/games/silabas/models/game_state.dart';
+import 'package:brincaki/games/silabas/providers/game_provider.dart';
 import 'package:brincaki/games/sudoku/providers/game_provider.dart';
 import 'package:brincaki/games/termo/models/game_state.dart';
 import 'package:brincaki/games/termo/providers/game_provider.dart';
@@ -87,12 +89,12 @@ Finder inPanel(String text) =>
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('menu mostra os 11 jogos', (tester) async {
+  testWidgets('menu mostra os 12 jogos', (tester) async {
     await launchApp(tester);
     for (final title in [
       'Caça-Palavras', 'Sudoku', '2048', 'Jogo da Velha',
       'Jogo da Forca', 'Jogo da Memória', 'Termo', 'Lig 4', 'Contas',
-      'Damas', 'Xadrez',
+      'Damas', 'Xadrez', 'Sílabas',
     ]) {
       await tester.scrollUntilVisible(find.text(title).first, 200,
           scrollable: find.byType(Scrollable).first);
@@ -490,6 +492,54 @@ void main() {
     }
     await tester.pumpAndSettle();
     expect(find.text('Jogar de novo'), findsOneWidget);
+    await backToMenu(tester);
+  });
+
+  testWidgets('Sílabas: joga as 10 palavras, erra uma vez e volta',
+      (tester) async {
+    await launchApp(tester);
+    await openGame(tester, 'Sílabas');
+    await tapVisible(tester, find.text('Jogar!'));
+    await tester.pumpAndSettle();
+
+    final p = providerOf<SilabasProvider>(tester);
+    for (var i = 0; i < p.wordCount; i++) {
+      final word = p.word!;
+      for (final pos in word.cutPositions) {
+        await tapVisible(tester, find.byKey(Key('corte-$pos')));
+      }
+      await tapVisible(tester, find.text('Conferir'));
+      await tester.pumpAndSettle();
+      expect(p.step, SilabasStep.stress);
+
+      await tapVisible(tester, find.byKey(Key('silaba-${word.stressIndex}')));
+      await tester.pumpAndSettle();
+      expect(p.step, SilabasStep.classify);
+
+      if (i == 0) {
+        final wrong =
+            StressClass.values.firstWhere((c) => c != word.stressClass);
+        await tapVisible(tester, find.byKey(Key('classe-${wrong.name}')));
+        await tester.pumpAndSettle();
+        expect(p.step, SilabasStep.classify);
+      }
+      await tapVisible(
+          tester, find.byKey(Key('classe-${word.stressClass.name}')));
+      await tester.pumpAndSettle();
+      expect(p.step, SilabasStep.solved);
+
+      await tapVisible(tester,
+          find.text(p.isLastWord ? 'Ver resultado' : 'Próxima palavra'));
+      await tester.pumpAndSettle();
+    }
+
+    expect(find.byType(ResultPanel), findsOneWidget);
+    expect(
+        find.descendant(
+            of: find.byType(ResultPanel),
+            matching: find.textContaining(RegExp(
+                'Mandou muito!|Muito bem!|Boa tentativa!'))),
+        findsOneWidget);
     await backToMenu(tester);
   });
 }
