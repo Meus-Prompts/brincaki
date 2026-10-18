@@ -16,6 +16,12 @@ import '../widgets/board_view.dart';
 
 const _levels = ['Fácil', 'Médio', 'Difícil'];
 
+String _levelLabel(AiLevel level) => switch (level) {
+  AiLevel.easy => 'Fácil',
+  AiLevel.medium => 'Médio',
+  AiLevel.hard => 'Difícil',
+};
+
 class DamasScreen extends StatelessWidget {
   const DamasScreen({super.key});
 
@@ -23,7 +29,7 @@ class DamasScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.watch<DamasProvider>();
     final title = p.phase != DamasPhase.setup && p.mode == PlayMode.solo
-        ? 'Damas • ${_levels[AiLevel.values.indexOf(p.aiLevel)]}'
+        ? 'Damas • ${_levelLabel(p.aiLevel)}'
         : 'Damas';
 
     return GameScaffold(

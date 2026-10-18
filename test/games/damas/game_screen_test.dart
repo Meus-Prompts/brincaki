@@ -195,6 +195,27 @@ void main() {
       expect(p.phase, DamasPhase.setup);
     });
 
+    testWidgets('título mostra o nível do computador ($tag)', (tester) async {
+      final p = await pumpScreen(tester, size);
+      for (final (level, label) in [(0, 'Fácil'), (1, 'Médio'), (2, 'Difícil')]) {
+        p.startFrom(
+          PlayerSetupResult(
+            mode: PlayMode.solo,
+            player1: 'Ana',
+            player2: 'Computador',
+            levelIndex: level,
+            sideIndex: 0,
+          ),
+          pos({42: 1, 9: -1}),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Damas • $label'), findsOneWidget);
+      }
+      p.startFrom(_duo, pos({42: 1, 9: -1}));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Damas •'), findsNothing);
+    });
+
     testWidgets('voltar durante a partida pede confirmação ($tag)',
         (tester) async {
       await pumpScreen(tester, size);
