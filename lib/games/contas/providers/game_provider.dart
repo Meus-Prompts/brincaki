@@ -51,6 +51,7 @@ class ContasProvider extends ChangeNotifier {
   int _correctCount = 0;
   bool _isNewRecord = false;
   bool _endedByMistake = false;
+  bool _revealedAtEnd = false;
 
   ContasPhase get phase => _phase;
   Operation get operation => _operation;
@@ -88,6 +89,12 @@ class ContasProvider extends ChangeNotifier {
 
   /// A rodada acabou no 3º erro, e não pelo "Parar".
   bool get endedByMistake => _endedByMistake;
+
+  /// A tela mostra a resposta certa: depois de um erro, e no fim se a rodada
+  /// acabou num erro (no 3º ou com "Parar" logo depois de errar).
+  bool get answerRevealed =>
+      _phase == ContasPhase.mistake ||
+      (_phase == ContasPhase.finished && _revealedAtEnd);
 
   /// Muda a escolha da tela de início; o que não for passado fica igual.
   void select({Operation? operation, int? level, AnswerMode? mode}) {
@@ -215,6 +222,7 @@ class ContasProvider extends ChangeNotifier {
   }
 
   void _finish({required bool byMistake}) {
+    _revealedAtEnd = byMistake || _phase == ContasPhase.mistake;
     _phase = ContasPhase.finished;
     _endedByMistake = byMistake;
     _isNewRecord = _score > currentRecord;
