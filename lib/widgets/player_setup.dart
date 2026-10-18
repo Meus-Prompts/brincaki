@@ -14,6 +14,7 @@ class PlayerSetupResult {
     required this.player1,
     required this.player2,
     this.levelIndex,
+    this.sideIndex,
   });
 
   final PlayMode mode;
@@ -24,6 +25,9 @@ class PlayerSetupResult {
 
   /// Índice em `levels`, só no modo solo quando há níveis.
   final int? levelIndex;
+
+  /// 0 = primeira cor de `sides`, 1 = segunda; nulo quando não há `sides`.
+  final int? sideIndex;
 }
 
 /// Tela inicial dos jogos com modo solo e de dois jogadores.
@@ -38,6 +42,7 @@ class PlayerSetup extends StatefulWidget {
     required this.onStart,
     this.levels,
     this.soloOpponentName,
+    this.sides,
   });
 
   final String title;
@@ -49,6 +54,9 @@ class PlayerSetup extends StatefulWidget {
   final List<String>? levels;
   final String? soloOpponentName;
 
+  /// Rótulos das duas cores (ex.: Brancas/Pretas); mostra a escolha de cor.
+  final (String, String)? sides;
+
   @override
   State<PlayerSetup> createState() => _PlayerSetupState();
 }
@@ -56,6 +64,7 @@ class PlayerSetup extends StatefulWidget {
 class _PlayerSetupState extends State<PlayerSetup> {
   PlayMode _mode = PlayMode.solo;
   int _level = 0;
+  int _side = 0;
   final _name1 = TextEditingController();
   final _name2 = TextEditingController();
 
@@ -78,6 +87,7 @@ class _PlayerSetupState extends State<PlayerSetup> {
       player1: _nameOr(_name1, 'Jogador 1'),
       player2: solo ? (widget.soloOpponentName ?? '') : _nameOr(_name2, 'Jogador 2'),
       levelIndex: solo && widget.levels != null ? _level : null,
+      sideIndex: widget.sides == null ? null : _side,
     ));
   }
 
@@ -85,6 +95,8 @@ class _PlayerSetupState extends State<PlayerSetup> {
   Widget build(BuildContext context) {
     final solo = _mode == PlayMode.solo;
     final levels = widget.levels;
+    final sides = widget.sides;
+    final swap = _side == 1;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -108,7 +120,7 @@ class _PlayerSetupState extends State<PlayerSetup> {
           _NameField(
             key: const Key('name1'),
             controller: _name1,
-            symbol: widget.symbols.$1,
+            symbol: swap ? widget.symbols.$2 : widget.symbols.$1,
             label: solo ? 'Seu nome' : 'Nome do Jogador 1',
           ),
           if (!solo) ...[
@@ -116,8 +128,18 @@ class _PlayerSetupState extends State<PlayerSetup> {
             _NameField(
               key: const Key('name2'),
               controller: _name2,
-              symbol: widget.symbols.$2,
+              symbol: swap ? widget.symbols.$1 : widget.symbols.$2,
               label: 'Nome do Jogador 2',
+            ),
+          ],
+          if (sides != null) ...[
+            const SizedBox(height: 20),
+            LevelPicker(
+              palette: widget.palette,
+              label: solo ? 'Sua cor' : 'Cor do Jogador 1',
+              levels: [sides.$1, sides.$2],
+              selected: _side,
+              onChanged: (i) => setState(() => _side = i),
             ),
           ],
           if (solo && levels != null) ...[

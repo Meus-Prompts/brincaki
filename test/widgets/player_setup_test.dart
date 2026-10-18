@@ -9,7 +9,10 @@ void main() {
   PlayerSetupResult? result;
 
   Future<void> pumpSetup(WidgetTester tester,
-      {List<String>? levels, String? opponent}) async {
+      {List<String>? levels,
+      String? opponent,
+      (String, String)? sides,
+      (String, String) symbols = ('🔴', '🟡')}) async {
     result = null;
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
@@ -18,7 +21,8 @@ void main() {
           emoji: '🔴',
           palette: kLig4Palette,
           soloLabel: 'Contra o computador',
-          symbols: ('🔴', '🟡'),
+          symbols: symbols,
+          sides: sides,
           levels: levels,
           soloOpponentName: opponent,
           onStart: (r) => result = r,
@@ -90,5 +94,56 @@ void main() {
     await pumpSetup(tester,
         levels: ['Fácil', 'Médio', 'Difícil'], opponent: 'Computador');
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('sem sides não mostra a escolha de cor e devolve sideIndex nulo',
+      (tester) async {
+    await pumpSetup(tester, levels: ['Fácil', 'Médio'], opponent: 'Computador');
+    expect(find.text('Sua cor'), findsNothing);
+    await tester.tap(find.text('Jogar!'));
+    expect(result!.sideIndex, isNull);
+  });
+
+  testWidgets('com sides mostra "Sua cor" no solo e devolve a cor escolhida',
+      (tester) async {
+    await pumpSetup(tester,
+        levels: ['Fácil', 'Médio'],
+        opponent: 'Computador',
+        sides: ('Brancas', 'Pretas'));
+    expect(find.text('Sua cor'), findsOneWidget);
+    await tester.tap(find.text('Jogar!'));
+    expect(result!.sideIndex, 0);
+
+    await tester.tap(find.text('Pretas'));
+    await tester.pump();
+    await tester.tap(find.text('Jogar!'));
+    expect(result!.sideIndex, 1);
+  });
+
+  testWidgets('em dois jogadores o rótulo é "Cor do Jogador 1"', (tester) async {
+    await pumpSetup(tester, sides: ('Brancas', 'Pretas'));
+    await tester.tap(find.text('Dois jogadores'));
+    await tester.pump();
+    expect(find.text('Cor do Jogador 1'), findsOneWidget);
+    expect(find.text('Sua cor'), findsNothing);
+    await tester.tap(find.text('Pretas'));
+    await tester.pump();
+    await tester.tap(find.text('Jogar!'));
+    expect(result!.sideIndex, 1);
+  });
+
+  testWidgets('com pretas os símbolos dos nomes trocam', (tester) async {
+    await pumpSetup(tester,
+        sides: ('Brancas', 'Pretas'), symbols: ('⚪', '⚫'));
+    String prefix() => tester
+        .widget<TextField>(find.descendant(
+            of: find.byKey(const Key('name1')),
+            matching: find.byType(TextField)))
+        .decoration!
+        .prefixText!;
+    expect(prefix(), contains('⚪'));
+    await tester.tap(find.text('Pretas'));
+    await tester.pump();
+    expect(prefix(), contains('⚫'));
   });
 }
