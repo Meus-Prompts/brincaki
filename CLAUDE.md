@@ -8,7 +8,7 @@ Brincaki is a Flutter app made of casual games for kids (Dart package name `brin
 
 Eleven games live under `lib/games/`: `cacapalavras`, `sudoku`, `2048`, `tictactoe` (Jogo da Velha), `forca`, `memoria`, `termo`, `lig4`, `contas` (math drills with lives, a streak multiplier and saved records), `damas` (checkers, mandatory and majority capture, flying kings) and `xadrez` (chess with full rules, promotion picker and a computer opponent).
 
-Dependencies used in the code: `provider`, `google_fonts` (the Fredoka font everywhere, bundled in `assets/google_fonts/`, never fetched at runtime). The chess piece glyphs use the bundled `ChessSymbols` font in `assets/fonts/` (Noto Sans Symbols 2 subset, OFL), `shared_preferences`, `flutter_test` and `integration_test`.
+Dependencies used in the code: `provider`, `google_fonts` (the Fredoka font everywhere, bundled in `assets/google_fonts/`, never fetched at runtime), `shared_preferences`, `flutter_test` and `integration_test`. The chess piece glyphs use the bundled `ChessSymbols` font in `assets/fonts/` (Noto Sans Symbols 2 subset, OFL).
 
 ## Commands
 
@@ -37,7 +37,7 @@ flutter run --debug
 **Each game is a self-contained module** under `lib/games/<game>/`:
 
 - `models/game_state.dart`: enums only, such as the phase enum (`setup`/`playing`/finished states) and cell or letter state enums.
-- `providers/game_provider.dart`: a single `ChangeNotifier` that holds all game logic and state. It has private fields with getters, and every mutating method checks the current phase first (for example, `if (_phase != ForcaPhase.won) return;`). Computer opponents (Velha, Lig 4) take an injectable think time and AI runner, discard late moves with a game id, and never notify after `dispose`.
+- `providers/game_provider.dart`: a single `ChangeNotifier` that holds all game logic and state. It has private fields with getters, and every mutating method checks the current phase first (for example, `if (_phase != ForcaPhase.won) return;`). Computer opponents (Velha, Lig 4, Damas, Xadrez) take an injectable think time and AI runner, discard late moves with a game id, and never notify after `dispose`.
 - `logic/` (optional): pure functions such as board rules and AI (`chooseMove`/`chooseColumn` with `easy`/`medium`/`hard`).
 - `screens/game_screen.dart`: the root screen, built on `GameScaffold`. It picks what to show based on `provider.phase`. Private sub-widgets live in the same file.
 - `widgets/`: focused presentational widgets that read the provider through `context.watch` / `Consumer`.

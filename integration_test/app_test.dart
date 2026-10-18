@@ -442,8 +442,10 @@ void main() {
       expect(find.text('Xadrez • Fácil'), findsOneWidget);
       final p = providerOf<XadrezProvider>(tester);
       var humanMoves = 0;
+      var pumps = 0;
       while (find.byType(ResultPanel).evaluate().isEmpty && humanMoves < 40) {
         if (p.isComputerTurn || p.aiThinking) {
+          if (pumps++ > 3000) fail('O computador de Xadrez não jogou a tempo');
           await tester.pump(const Duration(milliseconds: 100));
           continue;
         }
@@ -463,6 +465,7 @@ void main() {
         }
         humanMoves++;
       }
+      expect(humanMoves, greaterThan(0));
       await tester.pumpAndSettle();
       await backToMenu(tester);
     },
