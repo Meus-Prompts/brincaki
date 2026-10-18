@@ -44,7 +44,7 @@ class DamasMove {
 }
 
 class DamasPosition {
-  DamasPosition(this.cells, this.turn);
+  DamasPosition(List<int> cells, this.turn) : cells = List.unmodifiable(cells);
 
   factory DamasPosition.initial() {
     final cells = List.filled(64, 0);
@@ -84,7 +84,10 @@ List<DamasMove> legalMoves(DamasPosition p) {
     for (final m in captures) {
       if (m.captured.length > best) best = m.captured.length;
     }
-    return [for (final m in captures) if (m.captured.length == best) m];
+    return [
+      for (final m in captures)
+        if (m.captured.length == best) m,
+    ];
   }
   final moves = <DamasMove>[];
   for (var i = 0; i < 64; i++) {
@@ -114,8 +117,14 @@ List<DamasMove> legalMoves(DamasPosition p) {
 
 /// Busca em profundidade das sequências de captura a partir de [at].
 /// [piece] não muda no meio do lance: a pedra só vira dama no fim.
-void _captures(List<int> cells, int at, int piece, List<int> path,
-    List<int> captured, List<DamasMove> out) {
+void _captures(
+  List<int> cells,
+  int at,
+  int piece,
+  List<int> path,
+  List<int> captured,
+  List<DamasMove> out,
+) {
   var extended = false;
   final r = at ~/ 8, c = at % 8;
 
