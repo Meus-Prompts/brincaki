@@ -201,5 +201,51 @@ void main() {
       expect(find.byType(ResultPanel), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('empates e motivos aparecem no painel ($tag)', (tester) async {
+      final p = await pumpScreen(tester, size);
+      // Sem lances: as brancas ficam travadas na borda.
+      p.startFrom(_duo, pos({1: 1, 10: -1, 19: -1, 28: -1, 3: -1}));
+      await tester.pumpAndSettle();
+      expect(find.text('Beto venceu!'), findsOneWidget);
+      expect(find.text('Sem jogadas possíveis'), findsOneWidget);
+      // Empate pela terceira repetição.
+      p.startFrom(_duo, pos({56: 2, 5: -2}));
+      await tester.pumpAndSettle();
+      for (var i = 0; i < 2; i++) {
+        for (final (from, to) in [(56, 49), (5, 12), (49, 56), (12, 5)]) {
+          await tapSq(tester, from);
+          await tapSq(tester, to);
+        }
+      }
+      expect(find.text('Empate!'), findsOneWidget);
+      expect(find.text('A mesma posição 3 vezes'), findsOneWidget);
+      // Toques depois do fim não mexem no tabuleiro.
+      final before = List<int>.of(p.game.position.cells);
+      await tapSq(tester, 56);
+      await tapSq(tester, 49);
+      expect(p.game.position.cells, before);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('salto múltiplo deixa a peça capturada translúcida ($tag)',
+        (tester) async {
+      final p = await pumpScreen(tester, size);
+      p.startFrom(_duo, pos({49: 1, 42: -1, 26: -1}));
+      await tester.pumpAndSettle();
+      await tapSq(tester, 49);
+      await tapSq(tester, 35);
+      expect(p.capturedSoFar, {42});
+      final faded = find.descendant(
+        of: find.byKey(const Key('sq-42')),
+        matching: find.byType(Opacity),
+      );
+      expect(tester.widget<Opacity>(faded).opacity, 0.4);
+      expect(
+        find.descendant(
+            of: find.byKey(const Key('sq-26')), matching: find.byType(Opacity)),
+        findsNothing,
+      );
+    });
   }
 }

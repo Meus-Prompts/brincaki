@@ -92,9 +92,9 @@ class DamasBoardView extends StatelessWidget {
             if (value != 0)
               Padding(
                 padding: const EdgeInsets.all(3),
-                child: Opacity(
-                  opacity: captured.contains(index) ? 0.4 : 1,
-                  child: _Piece(
+                child: _maybeFaded(
+                  captured.contains(index),
+                  _Piece(
                     white: value > 0,
                     king: value.abs() == 2,
                     highlight: must.contains(index),
@@ -121,6 +121,9 @@ class DamasBoardView extends StatelessWidget {
     );
   }
 }
+
+Widget _maybeFaded(bool faded, Widget child) =>
+    faded ? Opacity(opacity: 0.4, child: child) : child;
 
 class _Piece extends StatelessWidget {
   const _Piece({
