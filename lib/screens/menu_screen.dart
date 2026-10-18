@@ -20,6 +20,10 @@ import '../games/lig4/screens/game_screen.dart';
 import '../games/lig4/providers/game_provider.dart';
 import '../games/contas/screens/game_screen.dart';
 import '../games/contas/providers/game_provider.dart';
+import '../games/damas/screens/game_screen.dart';
+import '../games/damas/providers/game_provider.dart';
+import '../games/xadrez/screens/game_screen.dart';
+import '../games/xadrez/providers/game_provider.dart';
 import '../widgets/game_palette.dart';
 import '../widgets/game_shell.dart';
 
@@ -150,6 +154,18 @@ class MenuScreen extends StatelessWidget {
     );
   }
 
+  void _openDamas(BuildContext context) {
+    _openGame(
+      context,
+      GameShell(
+        wrapProvider: (child) =>
+            ChangeNotifierProvider(create: (_) => DamasProvider(), child: child),
+        theme: kDamasPalette.theme,
+        home: (_) => const DamasScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -247,6 +263,15 @@ class MenuScreen extends StatelessWidget {
                 tags: const ['+ − × ÷', '3 níveis'],
                 palette: kContasPalette,
                 onTap: () => _openContas(context),
+              ),
+              const SizedBox(height: 16),
+              _buildGameCard(
+                emoji: '⚫',
+                title: 'Damas',
+                description: 'Capture todas as peças do adversário!',
+                tags: const ['Contra o computador', '2 jogadores'],
+                palette: kDamasPalette,
+                onTap: () => _openDamas(context),
               ),
               const SizedBox(height: 32),
               _buildFooter(),
