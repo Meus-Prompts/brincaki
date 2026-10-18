@@ -6,19 +6,36 @@ import 'position.dart';
 /// Partida imutável: guarda a posição e o histórico de repetições.
 /// `play` devolve uma nova partida.
 class ChessGame {
-  ChessGame._(this.position, this._counts, this.lastMove, this.end)
-    : legalMoves = end == null ? position.legalMoves() : const [];
+  ChessGame._(
+    this.position,
+    this._counts,
+    this._recent,
+    this.lastMove,
+    this.end,
+  ) : legalMoves = end == null ? position.legalMoves() : const [];
 
   factory ChessGame.start([ChessPosition? from]) {
     final p = from ?? ChessPosition.initial();
-    return ChessGame._(p, {p.repetitionKey: 1}, null, _endOf(p, 1));
+    final key = p.repetitionKey;
+    return ChessGame._(
+      p,
+      {key: 1},
+      List.unmodifiable([key]),
+      null,
+      _endOf(p, 1),
+    );
   }
 
   final ChessPosition position;
   final Map<String, int> _counts;
+  final List<String> _recent;
   final ChessMove? lastMove;
   final XadrezEnd? end;
   final List<ChessMove> legalMoves;
+
+  /// Chaves de repetição desde a última captura ou lance de peão, da mais
+  /// antiga até a posição atual. Só essas posições ainda podem se repetir.
+  List<String> get recentKeys => _recent;
 
   /// Só o mate dá vitória: vence quem fez o último lance.
   ChessSide? get winner =>
@@ -35,7 +52,10 @@ class ChessGame {
     final key = next.repetitionKey;
     final seen = (counts[key] ?? 0) + 1;
     counts[key] = seen;
-    return ChessGame._(next, counts, move, _endOf(next, seen));
+    final recent = List<String>.unmodifiable(
+      next.halfmoveClock == 0 ? [key] : [..._recent, key],
+    );
+    return ChessGame._(next, counts, recent, move, _endOf(next, seen));
   }
 }
 

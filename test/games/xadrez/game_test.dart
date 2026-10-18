@@ -79,6 +79,26 @@ void main() {
     expect(g.winner, isNull);
   });
 
+  test(
+    'recentKeys guarda as posições desde a última captura ou lance de peão',
+    () {
+      var g = ChessGame.start();
+      expect(g.recentKeys, [g.position.repetitionKey]);
+      g = mv(g, 'e2e4');
+      expect(g.recentKeys, [g.position.repetitionKey]);
+      final keys = [g.position.repetitionKey];
+      for (final u in ['g8f6', 'g1f3', 'f6g8']) {
+        g = mv(g, u);
+        keys.add(g.position.repetitionKey);
+      }
+      expect(g.recentKeys, keys);
+      // Captura recomeça a lista.
+      g = line(g, 'd2d4 e7e5 d4e5');
+      expect(g.recentKeys, [g.position.repetitionKey]);
+      expect(() => (g.recentKeys as List).add('x'), throwsUnsupportedError);
+    },
+  );
+
   test('play recusa lance ilegal', () {
     final g = ChessGame.start();
     expect(

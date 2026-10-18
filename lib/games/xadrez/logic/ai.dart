@@ -27,12 +27,16 @@ const _mopUpAdvantage = 400;
 /// Lance escolhido pelo computador (quem joga em [p]) no nível pedido.
 /// Só promove para dama. No difícil, a busca para quando passa do [budget] e
 /// fica com o melhor lance da última profundidade completa.
+/// [history] são as chaves de repetição das posições da partida que ainda
+/// podem se repetir (`ChessGame.recentKeys`); no difícil, voltar a uma delas
+/// conta como empate.
 /// Não chame numa posição sem lances (partida terminada).
 ChessMove chooseMove(
   ChessPosition p,
   AiLevel level,
   Random random, {
   Duration budget = const Duration(milliseconds: 1200),
+  List<String> history = const [],
 }) {
   final moves = _candidates(p);
   assert(moves.isNotEmpty, 'chooseMove numa posição sem lances');
@@ -40,17 +44,23 @@ ChessMove chooseMove(
   return switch (level) {
     AiLevel.easy => _easy(p, moves, random),
     AiLevel.medium => _medium(p, moves, random),
-    AiLevel.hard => _hard(p, moves, random, budget),
+    AiLevel.hard => _hard(p, moves, random, budget, history),
   };
 }
 
-/// Para `compute`: (FEN, índice do nível, semente). Devolve o índice do lance
+/// Para `compute`: (FEN, índice do nível, semente, chaves de repetição da
+/// partida, veja [chooseMove]). Devolve o índice do lance
 /// em `ChessPosition.fromFen(fen).legalMoves()`, que tem a mesma ordem da
 /// posição original.
-int chooseMoveInIsolate((String, int, int) args) {
-  final (fen, level, seed) = args;
+int chooseMoveInIsolate((String, int, int, List<String>) args) {
+  final (fen, level, seed, history) = args;
   final p = ChessPosition.fromFen(fen);
-  final move = chooseMove(p, AiLevel.values[level], Random(seed));
+  final move = chooseMove(
+    p,
+    AiLevel.values[level],
+    Random(seed),
+    history: history,
+  );
   final index = p.legalMoves().indexOf(move);
   assert(index >= 0, 'chooseMove devolveu um lance fora da lista');
   return index;
@@ -146,7 +156,8 @@ class _Search {
   final int budgetMicros;
   final Stopwatch watch;
 
-  /// Chaves de repetição das posições do caminho atual da busca.
+  /// Chaves de repetição da partida (as que ainda podem se repetir) e das
+  /// posições do caminho atual da busca.
   final path = <String>[];
 
   /// A profundidade 1 sempre termina, para ter um lance.
@@ -168,15 +179,12 @@ class _Search {
     final moves = _candidates(p);
     // Levar mate mais tarde é menos ruim; dar mate mais cedo é melhor.
     if (moves.isEmpty) return p.inCheck ? -(_mateScore - ply) : 0;
-    // Voltar a uma posição do caminho conta como empate, para quem está
-    // ganhando não ficar repetindo lances. Só depois de 4 meios-lances sem
-    // peão nem captura uma posição pode se repetir.
-    String? key;
-    if (p.halfmoveClock >= 4) {
-      key = p.repetitionKey;
-      if (path.contains(key)) return 0;
-    }
-    path.add(key ?? '');
+    // Voltar a uma posição da partida ou do caminho conta como empate, para
+    // quem está ganhando não ficar repetindo lances. Só depois de 4
+    // meios-lances sem peão nem captura uma posição pode se repetir.
+    final key = p.repetitionKey;
+    if (p.halfmoveClock >= 4 && path.contains(key)) return 0;
+    path.add(key);
     try {
       _sort(p, moves);
       var best = -_infinity;
@@ -255,8 +263,11 @@ ChessMove _hard(
   List<ChessMove> moves,
   Random random,
   Duration budget,
+  List<String> history,
 ) {
-  final search = _Search(budget.inMicroseconds)..path.add(p.repetitionKey);
+  final rootKey = p.repetitionKey;
+  final search = _Search(budget.inMicroseconds)..path.addAll(history);
+  if (history.isEmpty || history.last != rootKey) search.path.add(rootKey);
   var order = List.of(moves);
   _sort(p, order);
   var result = order.first;

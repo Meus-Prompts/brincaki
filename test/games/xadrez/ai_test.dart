@@ -165,7 +165,7 @@ void main() {
 
   test('difícil dá mate com dama e rei contra rei', () {
     for (var seed = 0; seed < 2; seed++) {
-      final game = playOut('k7/8/2Q5/8/3K4/8/8/8 w - - 0 1', seed, 20);
+      final game = playOut('k7/8/3Q4/8/3K4/8/8/8 w - - 0 1', seed, 20);
       expect(game.end, XadrezEnd.checkmate, reason: 'semente $seed');
       expect(game.winner, ChessSide.white);
     }
@@ -177,6 +177,48 @@ void main() {
       expect(game.end, XadrezEnd.checkmate, reason: 'semente $seed');
       expect(game.winner, ChessSide.white);
     }
+  });
+
+  test('difícil não volta a uma posição que já apareceu na partida', () {
+    // Dama e rei contra rei: o difícil escolhe um lance, as pretas respondem
+    // e os dois desfazem os lances, voltando à posição de partida.
+    final start = ChessPosition.fromFen('k7/8/3Q4/8/3K4/8/8/8 w - - 0 1');
+    final first = chooseMove(start, AiLevel.hard, Random(0));
+    ChessGame? back;
+    for (final r in ChessGame.start(start).play(first).legalMoves) {
+      try {
+        back = ChessGame.start(start)
+            .play(first)
+            .play(r)
+            .play(ChessMove(first.to, first.from))
+            .play(ChessMove(r.to, r.from));
+        break;
+      } on StateError {
+        continue;
+      }
+    }
+    final game = back!;
+    expect(game.position.repetitionKey, start.repetitionKey);
+    final repeated = start.play(first).repetitionKey;
+    expect(game.recentKeys, contains(repeated));
+    // Sem o histórico, o difícil repetiria o mesmo lance.
+    expect(chooseMove(game.position, AiLevel.hard, Random(0)), first);
+    final m = chooseMove(
+      game.position,
+      AiLevel.hard,
+      Random(0),
+      history: game.recentKeys,
+    );
+    expect(m, isNot(first));
+    expect(game.recentKeys, isNot(contains(start.play(m).repetitionKey)));
+    // O isolate recebe o mesmo histórico.
+    final index = chooseMoveInIsolate((
+      game.position.toFen(),
+      AiLevel.hard.index,
+      0,
+      game.recentKeys,
+    ));
+    expect(game.position.legalMoves()[index], isNot(first));
   });
 
   test('promove para dama', () {
@@ -206,7 +248,7 @@ void main() {
     for (final p in positions) {
       final fen = p.toFen();
       for (final level in [AiLevel.easy, AiLevel.medium]) {
-        final index = chooseMoveInIsolate((fen, level.index, 4));
+        final index = chooseMoveInIsolate((fen, level.index, 4, const []));
         expect(p.legalMoves()[index], chooseMove(p, level, Random(4)));
       }
     }
@@ -214,6 +256,7 @@ void main() {
       backRank.toFen(),
       AiLevel.hard.index,
       4,
+      const [],
     ));
     expect(isMate(backRank.play(backRank.legalMoves()[index])), isTrue);
   });
