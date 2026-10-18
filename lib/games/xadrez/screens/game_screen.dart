@@ -9,12 +9,18 @@ import '../../../widgets/game_scaffold.dart';
 import '../../../widgets/player_setup.dart';
 import '../../../widgets/result_panel.dart';
 import '../../../widgets/score_board.dart';
+import '../logic/ai.dart';
 import '../models/game_state.dart';
 import '../providers/game_provider.dart';
 import '../widgets/board_view.dart';
 
-/// Indexada por `AiLevel.index` (easy, medium, hard).
 const _levels = ['Fácil', 'Médio', 'Difícil'];
+
+String _levelLabel(AiLevel level) => switch (level) {
+  AiLevel.easy => 'Fácil',
+  AiLevel.medium => 'Médio',
+  AiLevel.hard => 'Difícil',
+};
 
 class XadrezScreen extends StatelessWidget {
   const XadrezScreen({super.key});
@@ -23,7 +29,7 @@ class XadrezScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.watch<XadrezProvider>();
     final title = p.phase != XadrezPhase.setup && p.mode == PlayMode.solo
-        ? 'Xadrez • ${_levels[p.aiLevel.index]}'
+        ? 'Xadrez • ${_levelLabel(p.aiLevel)}'
         : 'Xadrez';
 
     return GameScaffold(

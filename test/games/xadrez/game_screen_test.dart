@@ -264,6 +264,27 @@ void main() {
       expect(p.phase, XadrezPhase.setup);
     });
 
+    testWidgets('título mostra o nível do computador ($tag)', (tester) async {
+      final p = await pumpScreen(tester, size);
+      for (final (level, label) in [(0, 'Fácil'), (1, 'Médio'), (2, 'Difícil')]) {
+        p.startFrom(
+          PlayerSetupResult(
+            mode: PlayMode.solo,
+            player1: 'Ana',
+            player2: 'Computador',
+            levelIndex: level,
+            sideIndex: 0,
+          ),
+          ChessPosition.initial(),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Xadrez • $label'), findsOneWidget);
+      }
+      p.startFrom(_duo, ChessPosition.initial());
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Xadrez •'), findsNothing);
+    });
+
     testWidgets('voltar durante a partida pede confirmação ($tag)',
         (tester) async {
       await pumpScreen(tester, size);
