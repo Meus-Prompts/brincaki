@@ -2,10 +2,22 @@
 
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
+
 import '../models/game_state.dart';
 import 'board.dart';
 
 enum AiLevel { easy, medium, hard }
+
+/// Tempo de busca do difícil no celular e no computador.
+const kNativeHardBudget = Duration(milliseconds: 1200);
+
+/// Na web o `compute` não abre outra thread: a busca roda junto com a tela,
+/// que fica parada enquanto o computador pensa. Por isso ele pensa menos.
+const kWebHardBudget = Duration(milliseconds: 400);
+
+/// Tempo de busca do difícil nesta plataforma.
+const kHardBudget = kIsWeb ? kWebHardBudget : kNativeHardBudget;
 
 const _manValue = 100;
 const _kingValue = 300;
@@ -24,7 +36,7 @@ DamasMove chooseMove(
   DamasPosition p,
   AiLevel level,
   Random random, {
-  Duration budget = const Duration(milliseconds: 1200),
+  Duration budget = kHardBudget,
 }) {
   final moves = legalMoves(p);
   assert(moves.isNotEmpty, 'chooseMove numa posição sem lances');

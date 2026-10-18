@@ -260,4 +260,11 @@ void main() {
     ));
     expect(isMate(backRank.play(backRank.legalMoves()[index])), isTrue);
   });
+
+  test('o difícil pensa 1200 ms fora da web e menos na web', () {
+    // Os testes rodam na VM, então vale o tempo do celular.
+    expect(kHardBudget, kNativeHardBudget);
+    expect(kNativeHardBudget, const Duration(milliseconds: 1200));
+    expect(kWebHardBudget, const Duration(milliseconds: 400));
+  });
 }

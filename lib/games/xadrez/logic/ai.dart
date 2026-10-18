@@ -2,10 +2,22 @@
 
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
+
 import '../models/game_state.dart';
 import 'position.dart';
 
 enum AiLevel { easy, medium, hard }
+
+/// Tempo de busca do difícil no celular e no computador.
+const kNativeHardBudget = Duration(milliseconds: 1200);
+
+/// Na web o `compute` não abre outra thread: a busca roda junto com a tela,
+/// que fica parada enquanto o computador pensa. Por isso ele pensa menos.
+const kWebHardBudget = Duration(milliseconds: 400);
+
+/// Tempo de busca do difícil nesta plataforma.
+const kHardBudget = kIsWeb ? kWebHardBudget : kNativeHardBudget;
 
 // Valor das peças pelo tipo (índice 1 peão ... 6 rei).
 const _values = [0, 100, 320, 330, 500, 900, 20000];
@@ -35,7 +47,7 @@ ChessMove chooseMove(
   ChessPosition p,
   AiLevel level,
   Random random, {
-  Duration budget = const Duration(milliseconds: 1200),
+  Duration budget = kHardBudget,
   List<String> history = const [],
 }) {
   final moves = _candidates(p);
