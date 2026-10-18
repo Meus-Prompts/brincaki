@@ -10,8 +10,13 @@ import 'package:brincaki/games/contas/providers/game_provider.dart';
 
 import 'fake_record_store.dart';
 
+/// Sem a pausa contra toque duplo, para responder várias contas seguidas.
 ContasProvider newProvider({FakeRecordStore? store, int seed = 1}) =>
-    ContasProvider(store: store ?? FakeRecordStore(), random: Random(seed));
+    ContasProvider(
+      store: store ?? FakeRecordStore(),
+      random: Random(seed),
+      inputDelay: Duration.zero,
+    );
 
 /// Responde certo pelo teclado (ou pelas opções, no modo opções).
 void answerRight(ContasProvider p) {
@@ -583,6 +588,96 @@ void main() {
       expect(p.phase, ContasPhase.finished);
       expect(p.isNewRecord, isTrue);
       expect(p.currentRecord, 10);
+    });
+  });
+
+  group('toque duplo', () {
+    ContasProvider withDelay() => ContasProvider(
+          store: FakeRecordStore(),
+          random: Random(1),
+          inputDelay: const Duration(milliseconds: 300),
+        )
+          ..select(mode: AnswerMode.choices)
+          ..start();
+
+    testWidgets('a opção tocada logo depois de acertar é ignorada',
+        (tester) async {
+      final p = withDelay();
+      answerRight(p);
+      expect(p.score, 10);
+      final next = p.problem;
+      p.choose(p.choices.firstWhere((c) => c != next!.answer));
+      expect(p.lives, 3);
+      expect(p.phase, ContasPhase.playing);
+      await tester.pump(const Duration(milliseconds: 300));
+      answerRight(p);
+      expect(p.score, 20);
+      p.dispose();
+    });
+
+    testWidgets('"Continuar" logo depois de errar é ignorado', (tester) async {
+      final p = withDelay();
+      answerWrong(p);
+      p.continueAfterMistake();
+      expect(p.phase, ContasPhase.mistake);
+      await tester.pump(const Duration(milliseconds: 300));
+      p.continueAfterMistake();
+      expect(p.phase, ContasPhase.playing);
+      // E a opção tocada logo depois do "Continuar" também.
+      p.choose(p.problem!.answer);
+      expect(p.score, 0);
+      await tester.pump(const Duration(milliseconds: 300));
+      p.dispose();
+    });
+
+    testWidgets('dispose com a pausa ativa não deixa timer', (tester) async {
+      final p = withDelay();
+      answerRight(p);
+      p.dispose();
+    });
+  });
+
+  group('recorde salvo antes de carregar', () {
+    test('rodada menor não sobrescreve o recorde que ainda não chegou',
+        () async {
+      final gate = Completer<void>();
+      final store = FakeRecordStore(gate: gate, records: {'addition_1': 500});
+      final p = newProvider(store: store)..start();
+      for (var i = 0; i < 3; i++) {
+        answerRight(p);
+      }
+      p.stop();
+      await pumpEventQueue();
+      expect(store.saves, isEmpty);
+      gate.complete();
+      await pumpEventQueue();
+      expect(store.records['addition_1'], 500);
+      expect(p.currentRecord, 500);
+    });
+
+    test('rodada maior é salva quando o carregamento termina', () async {
+      final gate = Completer<void>();
+      final store = FakeRecordStore(gate: gate, records: {'addition_1': 10});
+      final p = newProvider(store: store)..start();
+      for (var i = 0; i < 3; i++) {
+        answerRight(p);
+      }
+      p.stop();
+      gate.complete();
+      await pumpEventQueue();
+      expect(store.saves, ['addition_1=30']);
+      expect(p.currentRecord, 30);
+    });
+
+    test('se a leitura falhou, nada é salvo por cima', () async {
+      final store = FakeRecordStore(failLoad: true, records: {'addition_1': 500});
+      final p = newProvider(store: store);
+      await pumpEventQueue();
+      p.start();
+      answerRight(p);
+      p.stop();
+      await pumpEventQueue();
+      expect(store.saves, isEmpty);
     });
   });
 }

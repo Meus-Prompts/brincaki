@@ -10,8 +10,11 @@ import '../logic/problem.dart';
 import '../models/game_state.dart';
 
 class ContasProvider extends ChangeNotifier {
-  ContasProvider({RecordStore? store, Random? random})
-      : _store = store ?? SharedPrefsRecordStore(),
+  ContasProvider({
+    RecordStore? store,
+    Random? random,
+    this.inputDelay = const Duration(milliseconds: 300),
+  })  : _store = store ?? SharedPrefsRecordStore(),
         _random = random ?? Random() {
     _load();
   }
@@ -27,9 +30,19 @@ class ContasProvider extends ChangeNotifier {
   static const int maxDigits = 4;
   static const int maxLevel = 3;
 
+  /// Depois de responder ou de tocar em "Continuar", toques nas opções e no
+  /// "Continuar" ficam ignorados por esse tempo: um toque duplo não responde
+  /// a conta seguinte.
+  final Duration inputDelay;
+
   final RecordStore _store;
   final Random _random;
   bool _disposed = false;
+
+  /// Os recordes salvos já foram lidos. Antes disso (ou se a leitura falhar)
+  /// nada é gravado, para não trocar um recorde maior por um menor.
+  bool _loaded = false;
+  Timer? _inputLock;
 
   /// A criança mexeu na escolha antes de a última escolha salva chegar.
   bool _touched = false;
@@ -139,7 +152,8 @@ class ContasProvider extends ChangeNotifier {
   }
 
   void choose(int value) {
-    if (_phase != ContasPhase.playing ||
+    if (_inputLocked ||
+        _phase != ContasPhase.playing ||
         _answerMode != AnswerMode.choices ||
         !_choices.contains(value)) {
       return;
@@ -148,7 +162,8 @@ class ContasProvider extends ChangeNotifier {
   }
 
   void continueAfterMistake() {
-    if (_phase != ContasPhase.mistake) return;
+    if (_phase != ContasPhase.mistake || _inputLocked) return;
+    _lockInput();
     _phase = ContasPhase.playing;
     _nextProblem();
     notifyListeners();
@@ -179,7 +194,16 @@ class ContasProvider extends ChangeNotifier {
   bool get _acceptsKeyboard =>
       _phase == ContasPhase.playing && _answerMode == AnswerMode.keyboard;
 
+  bool get _inputLocked => _inputLock?.isActive ?? false;
+
+  void _lockInput() {
+    if (inputDelay == Duration.zero) return;
+    _inputLock?.cancel();
+    _inputLock = Timer(inputDelay, () {});
+  }
+
   void _answer(int value) {
+    _lockInput();
     if (value == _problem!.answer) {
       _lastPoints = pointsPerHit * multiplier;
       _score += _lastPoints;
@@ -228,10 +252,12 @@ class ContasProvider extends ChangeNotifier {
     _isNewRecord = _score > currentRecord;
     if (_isNewRecord) {
       _records[(_operation, _level)] = _score;
-      final (op, level, score) = (_operation, _level, _score);
-      unawaited(_safely(() => _store.saveRecord(op, level, score)));
+      if (_loaded) _saveRecord(_operation, _level, _score);
     }
   }
+
+  void _saveRecord(Operation op, int level, int score) =>
+      unawaited(_safely(() => _store.saveRecord(op, level, score)));
 
   /// Falha ao salvar não atrapalha o jogo.
   Future<void> _safely(Future<void> Function() save) async {
@@ -255,9 +281,16 @@ class ContasProvider extends ChangeNotifier {
       return;
     }
     if (_disposed) return;
-    // Um recorde feito enquanto carregava vale mais que o salvo, se for maior.
+    // Um recorde feito enquanto carregava vale mais que o salvo, se for maior,
+    // e só agora é gravado.
+    _loaded = true;
     for (final MapEntry(:key, :value) in saved.entries) {
-      _records[key] = max(value, _records[key] ?? 0);
+      final inSession = _records[key] ?? 0;
+      if (inSession > value) {
+        _saveRecord(key.$1, key.$2, inSession);
+      } else {
+        _records[key] = value;
+      }
     }
     if (last != null && !_touched) {
       _operation = last.operation;
@@ -270,6 +303,7 @@ class ContasProvider extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _inputLock?.cancel();
     super.dispose();
   }
 }

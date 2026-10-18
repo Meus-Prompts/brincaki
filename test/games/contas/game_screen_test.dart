@@ -54,11 +54,13 @@ Future<ContasProvider> pumpGame(WidgetTester tester, Size size,
   return provider;
 }
 
+/// Toca e espera a pausa contra toque duplo passar.
 Future<void> tapFinder(WidgetTester tester, Finder finder) async {
   await tester.ensureVisible(finder);
   await tester.pumpAndSettle();
   await tester.tap(finder);
   await tester.pumpAndSettle();
+  await tester.pump(const Duration(milliseconds: 300));
 }
 
 Future<void> tapText(WidgetTester tester, String text) =>
@@ -374,6 +376,23 @@ void main() {
     expect(onScreen(find.text('${p.problem!.text} = ${p.problem!.answer}')),
         isTrue);
     expect(onScreen(inPanel('Jogar de novo')), isTrue);
+  });
+
+  testWidgets('toque duplo numa opção responde só uma conta', (tester) async {
+    final p = await pumpGame(tester, const Size(360, 740));
+    await tapText(tester, '🔘 Opções');
+    await tapText(tester, 'Jogar!');
+    final key = find.byKey(Key('opcao-${p.problem!.answer}'));
+    final spot = tester.getCenter(key);
+    await tester.tapAt(spot);
+    await tester.pump();
+    await tester.tapAt(spot);
+    await tester.pump();
+    expect(p.score, 10);
+    expect(p.lives, 3);
+    expect(p.phase, ContasPhase.playing);
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
   });
 
   testWidgets('apagar no teclado', (tester) async {

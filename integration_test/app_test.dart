@@ -402,6 +402,8 @@ void main() {
     for (var i = 0; i < 3; i++) {
       await type(p.problem!.answer + 1);
       if (i < 2) {
+        // Espera a pausa contra toque duplo do "Continuar".
+        await tester.pump(const Duration(milliseconds: 400));
         await tapVisible(tester, find.text('Continuar'));
         await tester.pumpAndSettle();
       }
