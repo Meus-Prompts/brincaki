@@ -397,4 +397,26 @@ void main() {
     expect(find.byType(ResultPanel), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('320x568: palavra resolvida fica visível acima do painel',
+      (tester) async {
+    // 5 sílabas e 10 letras: o pior caso para a fila de blocos.
+    final p = await pumpGame(
+      tester,
+      const Size(320, 568),
+      words: {for (var i = 0; i < 3; i++) i: ['ca-ra-me-LA-do']},
+    );
+    await tapButton(tester, 'Jogar!');
+    await solveWord(tester, p);
+    await tapButton(tester, 'Ver resultado');
+    expect(p.phase, SilabasPhase.finished);
+    expect(find.byType(ResultPanel), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    final points = tester.getRect(find.text('+30'));
+    final panel = tester.getRect(find.byType(ResultPanel));
+    expect(points.top, greaterThanOrEqualTo(0));
+    expect(points.bottom, lessThanOrEqualTo(panel.top));
+    expect(find.text('·'), findsNWidgets(4));
+  });
 }

@@ -71,6 +71,32 @@ void main() {
       expect(toggled, [2, 1]);
     });
 
+    testWidgets('blocos lado a lado, do tamanho do conteúdo', (tester) async {
+      await tester.pumpWidget(wrap(const SyllableBlocks(
+        palette: kSilabasPalette,
+        syllables: ['pás', 'sa', 'ro'],
+      )));
+      final a = tester.getRect(find.byKey(const Key('silaba-0')));
+      final b = tester.getRect(find.byKey(const Key('silaba-1')));
+      expect(b.top, a.top);
+      expect(b.left, greaterThan(a.right));
+      expect(a.width, lessThan(120));
+    });
+
+    testWidgets('separadores só quando pedidos', (tester) async {
+      await tester.pumpWidget(wrap(const SyllableBlocks(
+        palette: kSilabasPalette,
+        syllables: ['pás', 'sa', 'ro'],
+      )));
+      expect(find.text('·'), findsNothing);
+      await tester.pumpWidget(wrap(const SyllableBlocks(
+        palette: kSilabasPalette,
+        syllables: ['pás', 'sa', 'ro'],
+        separators: true,
+      )));
+      expect(find.text('·'), findsNWidgets(2));
+    });
+
     testWidgets('sem callback, tocar não faz nada', (tester) async {
       await tester.pumpWidget(wrap(const SplitWord(
         palette: kSilabasPalette,

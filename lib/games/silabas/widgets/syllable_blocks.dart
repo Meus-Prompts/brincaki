@@ -16,6 +16,7 @@ class SyllableBlocks extends StatelessWidget {
     this.highlighted,
     this.wrong = const {},
     this.onTap,
+    this.separators = false,
   });
 
   final GamePalette palette;
@@ -30,13 +31,33 @@ class SyllableBlocks extends StatelessWidget {
   /// Sem [onTap], os blocos não respondem a toques.
   final ValueChanged<int>? onTap;
 
+  /// Mostra um ponto entre os blocos (palavra resolvida: pás · sa · ro).
+  final bool separators;
+
   @override
   Widget build(BuildContext context) {
     return Wrap(
       alignment: WrapAlignment.center,
       spacing: 8,
       runSpacing: 8,
-      children: [for (var i = 0; i < syllables.length; i++) _block(i)],
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        for (var i = 0; i < syllables.length; i++) ...[
+          if (separators && i > 0) _separator(),
+          _block(i),
+        ],
+      ],
+    );
+  }
+
+  Widget _separator() {
+    return Text(
+      '·',
+      style: GoogleFonts.fredoka(
+        fontSize: 28,
+        fontWeight: FontWeight.bold,
+        color: palette.dark,
+      ),
     );
   }
 
@@ -56,18 +77,21 @@ class SyllableBlocks extends StatelessWidget {
       child: Container(
         constraints: const BoxConstraints(minWidth: 48, minHeight: 56),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: background,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: border, width: 2),
         ),
-        child: Text(
-          syllables[i],
-          style: GoogleFonts.fredoka(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: foreground,
+        child: Center(
+          widthFactor: 1,
+          heightFactor: 1,
+          child: Text(
+            syllables[i],
+            style: GoogleFonts.fredoka(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: foreground,
+            ),
           ),
         ),
       ),

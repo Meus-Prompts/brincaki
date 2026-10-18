@@ -256,6 +256,7 @@ class _SolvedCard extends StatelessWidget {
             palette: kSilabasPalette,
             syllables: word.syllables,
             highlighted: word.stressIndex,
+            separators: true,
           ),
           const SizedBox(height: 12),
           Text(
@@ -294,7 +295,7 @@ class _Result extends StatelessWidget {
       palette: kSilabasPalette,
       emoji: '🏆',
       title: title,
-      message: '${p.score} pontos de 300\n${'⭐' * stars}',
+      message: '${p.score} pontos de ${p.wordCount * 30}\n${'⭐' * stars}',
       actions: [
         ResultAction('Jogar de novo', p.playAgain),
         ResultAction('Mudar nível', p.exitToSetup, primary: false),
