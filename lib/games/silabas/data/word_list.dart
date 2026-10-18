@@ -61,7 +61,7 @@ const Map<int, List<String>> kSilabasWordsByLevel = {
     'CÓ-di-go',
     'DÚ-vi-da',
     'SÍ-la-ba',
-    'CÂ-me-ra',
+    'CÔ-mo-da',
   ],
   // Médio: rr, ss, sc, sç, xc que se separam; ch, lh, nh, qu, gu que não
   // se separam; encontros consonantais; sílabas terminadas em consoante.
@@ -125,12 +125,12 @@ const Map<int, List<String>> kSilabasWordsByLevel = {
     'a-ÇÚ-car',
     'TÊ-nis',
     'LÁ-pis',
+    'DES-ça',
     // Proparoxítonas
     'PÁS-sa-ro',
     'PÊS-se-go',
     'BÚS-so-la',
     'Ô-ni-bus',
-    'LÁ-gri-ma',
     'MÁ-qui-na',
     'LÍ-qui-do',
     'FÓS-fo-ro',
@@ -153,7 +153,6 @@ const Map<int, List<String>> kSilabasWordsByLevel = {
     'a-ça-Í',
     'sa-bi-Á',
     'ta-man-du-Á',
-    'pi-ca-PAU',
     'be-rim-BAU',
     'ba-ca-LHAU',
     'ca-ma-le-ÃO',
@@ -194,7 +193,6 @@ const Map<int, List<String>> kSilabasWordsByLevel = {
     // Proparoxítonas
     'LÂM-pa-da',
     'e-XÉR-ci-to',
-    'ma-i-ÚS-cu-la',
     'mi-NÚS-cu-la',
     'gra-MÁ-ti-ca',
     're-PÚ-bli-ca',
