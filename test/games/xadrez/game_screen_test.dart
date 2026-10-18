@@ -10,6 +10,7 @@ import 'package:brincaki/widgets/game_palette.dart';
 import 'package:brincaki/widgets/game_shell.dart';
 import 'package:brincaki/widgets/player_setup.dart';
 import 'package:brincaki/widgets/result_panel.dart';
+import 'package:brincaki/widgets/score_board.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -108,6 +109,31 @@ void main() {
       expect(find.text('Jogador 2 venceu!'), findsOneWidget);
       expect(find.textContaining('Vez de'), findsNothing);
       expect(p.phase, XadrezPhase.finished);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('dois jogadores: Jogador 1 com as pretas ($tag)',
+        (tester) async {
+      final p = await pumpScreen(tester, size);
+      await tapText(tester, 'Dois jogadores');
+      await tapText(tester, 'Pretas');
+      await tapText(tester, 'Jogar!');
+      // As brancas começam: é a vez do Jogador 2.
+      expect(find.text('Vez de ⚪ Jogador 2'), findsOneWidget);
+      final board = tester.widget<ScoreBoard>(find.byType(ScoreBoard));
+      expect((board.symbol1, board.symbol2), ('⚫', '⚪'));
+      // Tabuleiro fixo com as brancas embaixo.
+      expect(p.flipped, isFalse);
+      final top = tester.getTopLeft(find.byKey(const Key('sq-0')));
+      final bottom = tester.getTopLeft(find.byKey(const Key('sq-63')));
+      expect(top.dy, lessThan(bottom.dy));
+      // Mate do louco: as pretas (Jogador 1) vencem.
+      for (final (from, to) in [(53, 45), (12, 28), (54, 38), (3, 39)]) {
+        await tapSq(tester, from);
+        await tapSq(tester, to);
+      }
+      expect(find.text('Jogador 1 venceu!'), findsOneWidget);
+      expect(p.wins1, 1);
       expect(tester.takeException(), isNull);
     });
 

@@ -15,6 +15,12 @@ const _duo = PlayerSetupResult(
   player1: 'Ana',
   player2: 'Beto',
 );
+const _duoPretas = PlayerSetupResult(
+  mode: PlayMode.twoPlayers,
+  player1: 'Ana',
+  player2: 'Beto',
+  sideIndex: 1,
+);
 const _vsBrancas = PlayerSetupResult(
   mode: PlayMode.solo,
   player1: 'Ana',
@@ -65,6 +71,36 @@ void main() {
     expect(p.flipped, isFalse);
     expect(p.isComputerTurn, isFalse);
     expect(p.checkSquare, isNull);
+  });
+
+  test('dois jogadores: Jogador 1 com as pretas, Jogador 2 começa', () {
+    final p = make()..start(_duoPretas);
+    expect(p.player1Side, ChessSide.black);
+    // Em dois jogadores o tabuleiro fica com as brancas embaixo.
+    expect(p.flipped, isFalse);
+    expect(p.isComputerTurn, isFalse);
+    expect(p.game.position.turn, ChessSide.white);
+    expect(p.currentPlayer, 2);
+    tapMove(p, 'e2', 'e4');
+    expect(p.currentPlayer, 1);
+  });
+
+  test('dois jogadores: mate das pretas vai para o Jogador 1', () {
+    final p = make()..start(_duoPretas);
+    for (final (from, to) in [
+      ('f2', 'f3'),
+      ('e7', 'e5'),
+      ('g2', 'g4'),
+      ('d8', 'h4'),
+    ]) {
+      tapMove(p, from, to);
+    }
+    expect(p.phase, XadrezPhase.finished);
+    expect(p.winnerPlayer, 1);
+    expect([p.wins1, p.wins2, p.draws], [1, 0, 0]);
+    p.playAgain();
+    expect(p.player1Side, ChessSide.black);
+    expect(p.currentPlayer, 2);
   });
 
   test('seleciona peça e acende destinos', () {
