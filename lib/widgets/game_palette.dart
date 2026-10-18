@@ -94,3 +94,17 @@ const kContasPalette = GamePalette(
   dark: Color(0xFF3F6212),
   background: Color(0xFFF7FEE7),
 );
+
+const kDamasPalette = GamePalette(
+  accent: Color(0xFFA16207),
+  light: Color(0xFFCA8A04),
+  dark: Color(0xFF713F12),
+  background: Color(0xFFFEFCE8),
+);
+
+const kXadrezPalette = GamePalette(
+  accent: Color(0xFF4F46E5),
+  light: Color(0xFF818CF8),
+  dark: Color(0xFF3730A3),
+  background: Color(0xFFEEF2FF),
+);

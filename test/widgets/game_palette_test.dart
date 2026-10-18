@@ -14,6 +14,8 @@ void main() {
     'Memória': kMemoriaPalette,
     'Termo': kTermoPalette,
     'Lig 4': kLig4Palette,
+    'Damas': kDamasPalette,
+    'Xadrez': kXadrezPalette,
   };
 
   test('cada jogo tem uma cor própria', () {
