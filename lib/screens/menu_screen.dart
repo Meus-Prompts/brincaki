@@ -166,6 +166,18 @@ class MenuScreen extends StatelessWidget {
     );
   }
 
+  void _openXadrez(BuildContext context) {
+    _openGame(
+      context,
+      GameShell(
+        wrapProvider: (child) =>
+            ChangeNotifierProvider(create: (_) => XadrezProvider(), child: child),
+        theme: kXadrezPalette.theme,
+        home: (_) => const XadrezScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -272,6 +284,15 @@ class MenuScreen extends StatelessWidget {
                 tags: const ['Contra o computador', '2 jogadores'],
                 palette: kDamasPalette,
                 onTap: () => _openDamas(context),
+              ),
+              const SizedBox(height: 16),
+              _buildGameCard(
+                emoji: '♟️',
+                title: 'Xadrez',
+                description: 'Dê xeque-mate no rei adversário!',
+                tags: const ['Contra o computador', '2 jogadores'],
+                palette: kXadrezPalette,
+                onTap: () => _openXadrez(context),
               ),
               const SizedBox(height: 32),
               _buildFooter(),

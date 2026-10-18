@@ -29,7 +29,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('menu mostra os 10 jogos', (tester) async {
+  testWidgets('menu mostra os 11 jogos', (tester) async {
     await tester.pumpWidget(const BrincakiApp());
     await tester.pumpAndSettle();
     for (final title in [
@@ -43,6 +43,7 @@ void main() {
       'Lig 4',
       'Contas',
       'Damas',
+      'Xadrez',
     ]) {
       await tester.ensureVisible(find.text(title).first);
       expect(find.text(title), findsWidgets);
@@ -61,6 +62,7 @@ void main() {
     'Lig 4': find.text('Contra o computador'),
     'Contas': find.text('Responder com'),
     'Damas': find.text('Contra o computador'),
+    'Xadrez': find.text('Contra o computador'),
   };
 
   for (final entry in games.entries) {
