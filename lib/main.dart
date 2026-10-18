@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'screens/menu_screen.dart';
+import 'widgets/phone_frame.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,8 +22,9 @@ Future<void> configureApp() async {
     yield LicenseEntryWithLineBreaks(['google_fonts'], license);
   });
   LicenseRegistry.addLicense(() async* {
-    final license =
-        await rootBundle.loadString('assets/termo/LICENSE-fserb-pt-br.txt');
+    final license = await rootBundle.loadString(
+      'assets/termo/LICENSE-fserb-pt-br.txt',
+    );
     yield LicenseEntryWithLineBreaks(['fserb/pt-br'], license);
   });
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -42,6 +44,7 @@ class BrincakiApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFFFFFBEB),
         textTheme: GoogleFonts.fredokaTextTheme(),
       ),
+      builder: (context, child) => PhoneFrame(enabled: kIsWeb, child: child!),
       home: const MenuScreen(),
     );
   }
