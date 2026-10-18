@@ -26,11 +26,11 @@
 
 ## Review Focus
 
-1. Damas multi-capture with a flying king where two landing squares lead to different continuations: only landings that keep the maximum capture count must light up (test in Task D1 `lei da maioria vale para onde a dama pousa`, and D4 `salto por toque só acende pousos da maioria`).
-2. Double taps / taps during "Pensando..." or after the game ended must be ignored and never apply two moves (tests in D4 and X4: `ignora toques na vez do computador`, `ignora toques depois do fim`).
-3. Leaving with "Trocar jogadores" or the back arrow while the computer is thinking must not apply a stale move (tests in D4/X4: `descarta lance atrasado do computador`).
-4. Promotion selection cancelled (Xadrez) must leave the position untouched and the turn unchanged (test in X4 `cancelar promoção não mexe no tabuleiro`).
-5. Playing pretas vs computer: computer opens, board is flipped, and the tap keys still address the real squares (tests in D5/X5 `com as pretas o computador começa e o tabuleiro vira`).
+1. Damas multi-capture with a flying king where two landing squares lead to different continuations: only landings that keep the maximum capture count must light up (test in Task 2 `lei da maioria vale para onde a dama pousa`, and Task 5 `salto por toque só acende pousos da maioria`).
+2. Double taps / taps during "Pensando..." or after the game ended must be ignored and never apply two moves (tests in Task 5 and Task 10: `ignora toques na vez do computador`, `ignora toques depois do fim`).
+3. Leaving with "Trocar jogadores" or the back arrow while the computer is thinking must not apply a stale move (tests in Task 5/Task 10: `descarta lance atrasado do computador`).
+4. Promotion selection cancelled (Xadrez) must leave the position untouched and the turn unchanged (test in Task 10 `cancelar promoção não mexe no tabuleiro`).
+5. Playing pretas vs computer: computer opens, board is flipped, and the tap keys still address the real squares (tests in Task 6/Task 11 `com as pretas o computador começa e o tabuleiro vira`).
 
 ---
 
@@ -62,7 +62,7 @@
 
 Encoding: `List<int> cells` of 64; `0` empty, `1` pedra branca, `2` dama branca, `-1` pedra preta, `-2` dama preta. Dark (playable) squares: `(row + col).isOdd`. Initial: pretas on dark squares of rows 0–2, brancas on rows 5–7. Brancas move "up" (row decreasing) and promote on row 0; pretas promote on row 7.
 
-### Task D1: Rules (moves, captures, lei da maioria, promotion)
+### Task 2: Rules (moves, captures, lei da maioria, promotion)
 
 **Files:**
 - Create: `lib/games/damas/models/game_state.dart`, `lib/games/damas/logic/board.dart`
@@ -95,7 +95,7 @@ Encoding: `List<int> cells` of 64; `0` empty, `1` pedra branca, `2` dama branca,
 - [ ] **Step 4:** Tests pass.
 - [ ] **Step 5:** Commit `feat(damas): add the Brazilian draughts rules`.
 
-### Task D2: Game history and endings
+### Task 3: Game history and endings
 
 **Files:**
 - Create: `lib/games/damas/logic/game.dart`
@@ -109,7 +109,7 @@ Encoding: `List<int> cells` of 64; `0` empty, `1` pedra branca, `2` dama branca,
 - [ ] **Step 2:** Run → FAIL. **Step 3:** Implement (keep a `Map<String,int>` of key counts and the two counters; copy on `play`). **Step 4:** Pass.
 - [ ] **Step 5:** Commit `feat(damas): detect wins and draws`.
 
-### Task D3: Computer
+### Task 4: Computer
 
 **Files:**
 - Create: `lib/games/damas/logic/ai.dart`
@@ -123,14 +123,14 @@ Encoding: `List<int> cells` of 64; `0` empty, `1` pedra branca, `2` dama branca,
 - [ ] **Step 2–4:** Run → FAIL, implement, pass.
 - [ ] **Step 5:** Commit `feat(damas): add the computer opponent`.
 
-### Task D4: Provider
+### Task 5: Provider
 
 **Files:**
 - Create: `lib/games/damas/providers/game_provider.dart`
 - Test: `test/games/damas/game_provider_test.dart`
 
 **Interfaces:**
-- Consumes: D1–D3, `PlayerSetupResult` (with `sideIndex`).
+- Consumes: Tasks 2–4, `PlayerSetupResult` (with `sideIndex`).
 - Produces: `typedef DamasAiRunner = Future<DamasMove> Function(DamasPosition position, AiLevel level);` `class DamasProvider extends ChangeNotifier { DamasProvider({Random? random, Duration thinkTime = const Duration(milliseconds: 500), DamasAiRunner? aiRunner}); }` with getters: `phase`, `mode`, `name1`, `name2`, `aiLevel`, `player1Side` (`DamasSide`), `game` (`DamasGame`), `selected` (`int?`), `targets` (`Set<int>`), `partialPath` (`List<int>`), `capturedSoFar` (`Set<int>`), `mustCapture` (`Set<int>` of own squares that can capture, empty when no capture is forced), `lastMove` (`DamasMove?`), `wins1`, `wins2`, `draws`, `aiThinking`, `isComputerTurn`, `flipped` (`bool`: true when the bottom of the screen is pretas), `winnerPlayer` (`int?`: 1, 2 or null), `currentPlayer` (`int`: 1 or 2); methods `start(PlayerSetupResult)`, `tapSquare(int index)`, `playAgain()`, `exitToSetup()`.
 - In solo, player 1 is the human; the computer is player 2 with the other side. `start` reads `sideIndex ?? 0` (0 = brancas).
 - `tapSquare`: in `playing`, not `aiThinking`, not `isComputerTurn`. No partial path: tapping an own piece that starts a legal move selects it (`targets` = next squares of those moves); tapping a target extends `partialPath`; when the path equals a full legal move it is played. Once a capture sequence has begun (`partialPath.length >= 2`) only targets are accepted. Tapping elsewhere without a partial path clears the selection.
@@ -139,7 +139,7 @@ Encoding: `List<int> cells` of 64; `0` empty, `1` pedra branca, `2` dama branca,
 - [ ] **Step 2–4:** Run → FAIL, implement, pass.
 - [ ] **Step 5:** Commit `feat(damas): add the game provider`.
 
-### Task D5: Screen and board
+### Task 6: Screen and board
 
 **Files:**
 - Create: `lib/games/damas/screens/game_screen.dart` (`DamasScreen`), `lib/games/damas/widgets/board_view.dart` (`DamasBoardView`)
@@ -160,7 +160,7 @@ Encoding: `List<int> cells` of 64; `0` empty, `1` pedra branca, `2` dama branca,
 
 Encoding: `List<int> cells` of 64, row 0 = rank 8. `1` peão, `2` cavalo, `3` bispo, `4` torre, `5` dama, `6` rei; positive brancas, negative pretas. Castling bits: `1` K, `2` Q, `4` k, `8` q.
 
-### Task X1: Position and legal moves
+### Task 7: Position and legal moves
 
 **Files:**
 - Create: `lib/games/xadrez/models/game_state.dart`, `lib/games/xadrez/logic/position.dart`
@@ -178,7 +178,7 @@ Encoding: `List<int> cells` of 64, row 0 = rank 8. `1` peão, `2` cavalo, `3` bi
 - [ ] **Step 2–4:** Run → FAIL, implement (pseudo-legal generation, then filter by `!play(m).isAttacked(kingSquare(turn), opponent)`; castling checks the king's start, the crossed square and the target), pass. Perft tests must finish in a few seconds.
 - [ ] **Step 5:** Commit `feat(xadrez): add the chess rules and move generation`.
 
-### Task X2: Game history and endings
+### Task 8: Game history and endings
 
 **Files:**
 - Create: `lib/games/xadrez/logic/game.dart`
@@ -191,7 +191,7 @@ Encoding: `List<int> cells` of 64, row 0 = rank 8. `1` peão, `2` cavalo, `3` bi
 - [ ] **Step 2–4:** Run → FAIL, implement, pass.
 - [ ] **Step 5:** Commit `feat(xadrez): detect checkmate and draws`.
 
-### Task X3: Computer
+### Task 9: Computer
 
 **Files:**
 - Create: `lib/games/xadrez/logic/ai.dart`
@@ -205,7 +205,7 @@ Encoding: `List<int> cells` of 64, row 0 = rank 8. `1` peão, `2` cavalo, `3` bi
 - [ ] **Step 2–4:** Run → FAIL, implement, pass.
 - [ ] **Step 5:** Commit `feat(xadrez): add the computer opponent`.
 
-### Task X4: Provider
+### Task 10: Provider
 
 **Files:**
 - Create: `lib/games/xadrez/providers/game_provider.dart`
@@ -215,11 +215,11 @@ Encoding: `List<int> cells` of 64, row 0 = rank 8. `1` peão, `2` cavalo, `3` bi
 - Produces: `typedef XadrezAiRunner = Future<ChessMove> Function(ChessPosition position, AiLevel level);` `class XadrezProvider extends ChangeNotifier { XadrezProvider({Random? random, Duration thinkTime = const Duration(milliseconds: 500), XadrezAiRunner? aiRunner}); }` getters `phase`, `mode`, `name1`, `name2`, `aiLevel`, `player1Side` (`ChessSide`), `game` (`ChessGame`), `selected`, `targets` (`Set<int>`), `lastMove`, `checkSquare` (`int?`: the king square of the side to move when in check), `pendingPromotion` (`(int from, int to)?`), `wins1`, `wins2`, `draws`, `aiThinking`, `isComputerTurn`, `flipped`, `winnerPlayer`, `currentPlayer`; methods `start(PlayerSetupResult)`, `tapSquare(int)`, `promote(int pieceType)` (2–5), `cancelPromotion()`, `playAgain()`, `exitToSetup()`, `@visibleForTesting startFrom(PlayerSetupResult, ChessPosition)`.
 - Tapping a target that is a promotion sets `pendingPromotion` instead of moving; while it is set, `tapSquare` is ignored.
 
-- [ ] **Step 1: Failing tests:** same list as D4 adapted (seleção, destinos, vez, computador, pretas começa com computador, toques ignorados, lance atrasado descartado, runner que falha, dispose, placar, exitToSetup), plus `roque pelos toques do rei`, `promoção espera a escolha`, `cancelar promoção não mexe no tabuleiro`, `checkSquare marca o rei em xeque`.
+- [ ] **Step 1: Failing tests:** same list as Task 5 adapted (seleção, destinos, vez, computador, pretas começa com computador, toques ignorados, lance atrasado descartado, runner que falha, dispose, placar, exitToSetup), plus `roque pelos toques do rei`, `promoção espera a escolha`, `cancelar promoção não mexe no tabuleiro`, `checkSquare marca o rei em xeque`.
 - [ ] **Step 2–4:** Run → FAIL, implement, pass.
 - [ ] **Step 5:** Commit `feat(xadrez): add the game provider`.
 
-### Task X5: Screen, board and promotion picker
+### Task 11: Screen, board and promotion picker
 
 **Files:**
 - Create: `lib/games/xadrez/screens/game_screen.dart` (`XadrezScreen`), `lib/games/xadrez/widgets/board_view.dart` (`XadrezBoardView`), `lib/games/xadrez/widgets/chess_piece.dart` (`ChessPiece(value, size)`), `lib/games/xadrez/widgets/promotion_picker.dart`
@@ -236,7 +236,7 @@ Encoding: `List<int> cells` of 64, row 0 = rank 8. `1` peão, `2` cavalo, `3` bi
 
 ---
 
-### Task F: Menu, integration test, docs, gates
+### Task 12: Menu, integration test, docs, gates
 
 **Files:**
 - Modify: `lib/screens/menu_screen.dart`, `test/screens/menu_screen_test.dart`, `integration_test/app_test.dart`, `CLAUDE.md`
