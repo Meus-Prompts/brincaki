@@ -12,13 +12,14 @@ const _kingValue = 300;
 const _winScore = 1000000;
 // Não usar shift (1 << 40): no JavaScript ele dá 0 e quebra a busca na web.
 const _infinity = 1000000000;
-const _hardMaxDepth = 8;
+const _hardMaxDepth = 6;
 // Quantos meios-lances a mais a busca segue quando só há capturas.
 const _maxExtension = 6;
 
 /// Lance escolhido pelo computador (quem joga em [p]) no nível pedido.
 /// No difícil, a busca para quando passa do [budget] e fica com o melhor lance
 /// da última profundidade completa.
+/// Não chame numa posição sem lances (partida terminada).
 DamasMove chooseMove(
   DamasPosition p,
   AiLevel level,
@@ -26,6 +27,7 @@ DamasMove chooseMove(
   Duration budget = const Duration(milliseconds: 1200),
 }) {
   final moves = legalMoves(p);
+  assert(moves.isNotEmpty, 'chooseMove numa posição sem lances');
   if (moves.length == 1) return moves.single;
   return switch (level) {
     AiLevel.easy => _easy(moves, p, random),
