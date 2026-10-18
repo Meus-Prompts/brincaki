@@ -1,10 +1,18 @@
-# Publica a pasta site/ no GitHub Pages sempre que ela muda na main.
+# Publica o site/ no GitHub Pages, com o app web em site/jogar/, sempre que
+# o site ou o código do app mudam na main.
 name: Página do projeto
 
 on:
   push:
     branches: [main]
-    paths: ['site/**', '.github/workflows/pages.yml']
+    paths:
+      - 'site/**'
+      - 'lib/**'
+      - 'web/**'
+      - 'assets/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/pages.yml'
   workflow_dispatch:
 
 permissions:
@@ -24,6 +32,19 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.44.2
+          channel: stable
+          cache: true
+
+      - name: Gerar o app web
+        run: |
+          flutter pub get
+          flutter build web --release --base-href /brincaki/jogar/
+          cp -r build/web site/jogar
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

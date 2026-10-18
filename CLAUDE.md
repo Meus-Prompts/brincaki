@@ -20,9 +20,12 @@ flutter test --coverage && python3 tool/check_coverage.py   # coverage gate
 flutter test integration_test -d linux              # real app (needs clang + ninja-build)
 flutter analyze                                     # lint
 flutter run --debug
+flutter build web --release --base-href /brincaki/jogar/   # web version
 ```
 
 `tool/check_coverage.py` fails if any file in `lib/` with executable code is below 90% line coverage or the total is below 95%. Keep it passing.
+
+**Web:** the same code runs in the browser. `.github/workflows/pages.yml` builds the web app into `site/jogar/` and publishes `site/` on GitHub Pages (https://meus-prompts.github.io/brincaki/jogar/). On the web `compute` runs on the UI thread, so the Damas and Xadrez hard levels think for `kWebHardBudget` (400 ms) instead of 1200 ms, and `lib/widgets/phone_frame.dart` shows the app in a phone-wide column on wide screens.
 
 ## Architecture
 
