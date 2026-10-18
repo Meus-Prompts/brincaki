@@ -82,7 +82,7 @@ class DamasProvider extends ChangeNotifier {
 
   /// Casas de peças que podem capturar quando a captura é obrigatória.
   Set<int> get mustCapture {
-    if (_phase != DamasPhase.playing) return const {};
+    if (_phase != DamasPhase.playing || isComputerTurn) return const {};
     final moves = _game.legalMoves;
     if (moves.isEmpty || !moves.first.isCapture) return const {};
     return {for (final m in moves) m.from};
@@ -192,14 +192,7 @@ class DamasProvider extends ChangeNotifier {
     _partialPath = const [];
     if (_game.end != null) {
       _phase = DamasPhase.finished;
-      switch (winnerPlayer) {
-        case 1:
-          _wins1++;
-        case 2:
-          _wins2++;
-        default:
-          _draws++;
-      }
+      _tally();
     }
     notifyListeners();
     _afterMove();
@@ -253,15 +246,18 @@ class DamasProvider extends ChangeNotifier {
     _partialPath = const [];
     _aiThinking = false;
     _phase = game.end != null ? DamasPhase.finished : DamasPhase.playing;
-    if (game.end != null) {
-      switch (winnerPlayer) {
-        case 1:
-          _wins1++;
-        case 2:
-          _wins2++;
-        default:
-          _draws++;
-      }
+    if (game.end != null) _tally();
+  }
+
+  /// Soma o resultado da partida terminada no placar.
+  void _tally() {
+    switch (winnerPlayer) {
+      case 1:
+        _wins1++;
+      case 2:
+        _wins2++;
+      default:
+        _draws++;
     }
   }
 

@@ -154,23 +154,57 @@ void main() {
   });
 
   test('ignora toques na vez do computador', () async {
-    final p = make(t: const Duration(milliseconds: 50))..start(_vsPretas);
-    p.tapSquare(17);
+    final answer = Completer<DamasMove>();
+    final p = make(runner: (_, _) => answer.future)..start(_vsPretas);
+    await settle();
+    expect(p.aiThinking, isTrue);
+    final before = p.game.position.cells;
+    // 42 é peça branca (do computador) com lance legal, e 35 é destino dela.
+    p.tapSquare(42);
+    p.tapSquare(35);
     expect(p.selected, isNull);
-    await Future<void>.delayed(const Duration(milliseconds: 120));
+    expect(p.partialPath, isEmpty);
+    expect(p.game.position.cells, before);
+    expect(p.game.position.turn, DamasSide.white);
+    final move = legalMoves(
+      p.game.position,
+    ).firstWhere((m) => m.from == 42 && m.to == 35);
+    answer.complete(move);
+    await settle();
     expect(p.game.position.turn, DamasSide.black);
+    expect(p.lastMove, move);
+    expect(
+      p.game.position.cells,
+      applyMove(DamasPosition(before, DamasSide.white), move).cells,
+    );
+  });
+
+  test('mustCapture fica vazio na vez do computador', () async {
+    final answer = Completer<DamasMove>();
+    final p = make(runner: (_, _) => answer.future)
+      ..startFrom(_vsPretas, pos({42: 1, 33: -1}));
+    await settle();
+    expect(p.isComputerTurn, isTrue);
+    expect(p.mustCapture, isEmpty);
+    answer.complete(legalMoves(p.game.position).first);
+    await settle();
   });
 
   test('ignora toques depois do fim', () {
-    final p = make()..startFrom(_duo, pos({42: 1, 33: -1}));
+    final p = make()..startFrom(_duo, pos({42: 1, 33: -1, 60: 1}));
     p.tapSquare(42);
     p.tapSquare(24);
     expect(p.phase, DamasPhase.finished);
     final cells = p.game.position.cells;
-    p.tapSquare(24);
-    p.tapSquare(18);
-    expect(p.game.position.cells, cells);
-    expect(p.selected, isNull);
+    final wins = p.wins1;
+    // 60 e 24 são peças brancas com casas livres à frente.
+    for (final i in [60, 51, 24, 17, 15]) {
+      p.tapSquare(i);
+      expect(p.selected, isNull, reason: 'toque em $i');
+      expect(p.partialPath, isEmpty);
+      expect(p.game.position.cells, cells);
+    }
+    expect(p.wins1, wins);
   });
 
   test('descarta lance atrasado do computador', () async {
@@ -289,7 +323,8 @@ void main() {
             sideIndex: 1,
           ),
         );
-      for (var i = 0; i < 400 && p.aiThinking || p.lastMove == null; i++) {
+      var i = 0;
+      while (p.lastMove == null && i++ < 400) {
         await Future<void>.delayed(const Duration(milliseconds: 10));
       }
       expect(p.lastMove, isNotNull, reason: 'nível $level');
