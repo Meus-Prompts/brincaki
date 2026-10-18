@@ -15,6 +15,7 @@ import 'package:brincaki/games/2048/providers/game_provider.dart';
 import 'package:brincaki/games/cacapalavras/providers/game_provider.dart';
 import 'package:brincaki/games/cacapalavras/widgets/letter_grid.dart';
 import 'package:brincaki/games/contas/providers/game_provider.dart';
+import 'package:brincaki/games/damas/providers/game_provider.dart';
 import 'package:brincaki/games/forca/providers/game_provider.dart';
 import 'package:brincaki/games/lig4/logic/board.dart' as lig4;
 import 'package:brincaki/games/lig4/providers/game_provider.dart';
@@ -23,6 +24,8 @@ import 'package:brincaki/games/sudoku/providers/game_provider.dart';
 import 'package:brincaki/games/termo/models/game_state.dart';
 import 'package:brincaki/games/termo/providers/game_provider.dart';
 import 'package:brincaki/games/tictactoe/providers/game_provider.dart';
+import 'package:brincaki/games/xadrez/logic/position.dart' show squareOf;
+import 'package:brincaki/games/xadrez/providers/game_provider.dart';
 import 'package:brincaki/main.dart';
 import 'package:brincaki/widgets/game_scaffold.dart';
 import 'package:brincaki/widgets/result_panel.dart';
@@ -84,11 +87,12 @@ Finder inPanel(String text) =>
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('menu mostra os 9 jogos', (tester) async {
+  testWidgets('menu mostra os 11 jogos', (tester) async {
     await launchApp(tester);
     for (final title in [
       'Caça-Palavras', 'Sudoku', '2048', 'Jogo da Velha',
       'Jogo da Forca', 'Jogo da Memória', 'Termo', 'Lig 4', 'Contas',
+      'Damas', 'Xadrez',
     ]) {
       await tester.scrollUntilVisible(find.text(title).first, 200,
           scrollable: find.byType(Scrollable).first);
@@ -409,6 +413,80 @@ void main() {
       }
     }
     expect(inPanel('Novo recorde!'), findsOneWidget);
+    await backToMenu(tester);
+  });
+
+  testWidgets(
+    'Xadrez: mate do louco em dois jogadores e uma partida contra o computador',
+    (tester) async {
+      await launchApp(tester);
+      await openGame(tester, 'Xadrez');
+
+      await tester.tap(find.text('Dois jogadores'));
+      await tester.pump();
+      await tester.tap(find.text('Jogar!'));
+      await tester.pumpAndSettle();
+      for (final square in ['f2', 'f3', 'e7', 'e5', 'g2', 'g4', 'd8', 'h4']) {
+        await tester.tap(find.byKey(Key('sq-${squareOf(square)}')));
+        await tester.pumpAndSettle();
+      }
+      expect(inPanel('Xeque-mate!'), findsOneWidget);
+      expect(inPanel('Jogador 2 venceu!'), findsOneWidget);
+      await tester.tap(find.text('Trocar jogadores'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Fácil'));
+      await tester.pump();
+      await tester.tap(find.text('Jogar!'));
+      await tester.pumpAndSettle();
+      expect(find.text('Xadrez • Fácil'), findsOneWidget);
+      final p = providerOf<XadrezProvider>(tester);
+      var humanMoves = 0;
+      while (find.byType(ResultPanel).evaluate().isEmpty && humanMoves < 40) {
+        if (p.isComputerTurn || p.aiThinking) {
+          await tester.pump(const Duration(milliseconds: 100));
+          continue;
+        }
+        final move = p.game.legalMoves.first;
+        final isPromotion =
+            p.game.legalMoves
+                .where((m) => m.from == move.from && m.to == move.to)
+                .length >
+            1;
+        await tester.tap(find.byKey(Key('sq-${move.from}')));
+        await tester.pump();
+        await tester.tap(find.byKey(Key('sq-${move.to}')));
+        await tester.pump();
+        if (isPromotion) {
+          await tester.tap(find.byKey(const Key('promo-5')));
+          await tester.pump();
+        }
+        humanMoves++;
+      }
+      await tester.pumpAndSettle();
+      await backToMenu(tester);
+    },
+  );
+
+  testWidgets('Damas: dois jogadores até o fim', (tester) async {
+    await launchApp(tester);
+    await openGame(tester, 'Damas');
+
+    await tester.tap(find.text('Dois jogadores'));
+    await tester.pump();
+    await tester.tap(find.text('Jogar!'));
+    await tester.pumpAndSettle();
+    final p = providerOf<DamasProvider>(tester);
+    var moves = 0;
+    while (find.byType(ResultPanel).evaluate().isEmpty) {
+      if (moves++ >= 400) fail('A partida de Damas não terminou em 400 lances');
+      for (final square in p.game.legalMoves.first.path) {
+        await tester.tap(find.byKey(Key('sq-$square')));
+        await tester.pump();
+      }
+    }
+    await tester.pumpAndSettle();
+    expect(find.text('Jogar de novo'), findsOneWidget);
     await backToMenu(tester);
   });
 }
